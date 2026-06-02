@@ -1,0 +1,5 @@
+# For dependencies 
+
+fastapi 
+uvicorn[standard]
+sqlalchemy

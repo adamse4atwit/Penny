@@ -1,0 +1,1 @@
+# Table file for portfolios, assets, transactions, and other factors
