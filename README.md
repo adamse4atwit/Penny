@@ -3,19 +3,29 @@ Penny is an AI Financial Portfolio Assistant is an intelligent application desig
 
 ## Set up Steps 
 
-- Create an .env in root, contact team admin for keys.
+Create an .env in root, contact team admin for keys.
 
 ### For Backend 
-- cd into app, then into the backend directory. The virtual environment is already created by to activate it, run: 
+CD into app, then into the backend directory. 
 
+To create the virtual environment, run: 
+
+```jsx
+python3 -m venv venv
+```jsx 
+
+To activate it, run: 
+
+```jsx
 source venv/bin/activate 
+```jsx
 
-- Then to install the necessary components to load the program correctly, run: 
+Then to install the necessary components to load the program correctly, run: 
 
 pip install -r requirements.txt 
 
 
-- To deactive the virtual environment, run: 
+To deactive the virtual environment, run: 
 
 deactivate 
 
