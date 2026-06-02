@@ -5,7 +5,7 @@ Penny is an AI Financial Portfolio Assistant is an intelligent application desig
 
 Create an .env in root, contact team admin for keys.
 
-## For Project Setup
+### For Backend Setup
 In pulling the project, make sure python(3) and pip are installed in the IDE. Then create a virtual environment with 
 ```jsx
 python3 -m venv venv
