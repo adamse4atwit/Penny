@@ -18,7 +18,10 @@ Penny is an AI Financial Portfolio Assistant is an intelligent application desig
 
 2. Create an .env in root, contact team admin for keys.
 
-3. createdb penny_db 
+3. Create the database with: 
+```jsx 
+createdb penny_db 
+```
 
 4. uvicorn app.main:app --reload
 
