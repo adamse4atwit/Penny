@@ -1,6 +1,6 @@
 # For user data table file
 
-from sqlalcehmy import Column, Integer, String, DateTime 
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.orm import relationship 
 from datetime import datetime 
 from app.database import Base 
