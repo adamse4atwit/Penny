@@ -14,7 +14,7 @@ class AssetOut(BaseModel) :
     ticker: str 
     shares: float 
     purchase_price: float 
-    created_at: datetime 
+    #created_at: datetime 
 
     class Config: 
         from_attributes = True 

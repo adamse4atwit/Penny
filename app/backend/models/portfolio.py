@@ -23,7 +23,7 @@ class Asset(Base) :
     ticker = Column( String, nullable=False )
     shares = Column( Float, nullable=False )
     purchase_price = Column( Float, nullable=False )
-    created_at = Column( DateTime, default=datetime.utcnow )
+    #created_at = Column( DateTime, default=datetime.utcnow )
     portfolio_id = Column( Integer, ForeignKey( "portfolios.id" ), nullable=False )
 
 

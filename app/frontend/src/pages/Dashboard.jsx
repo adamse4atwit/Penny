@@ -134,13 +134,13 @@ function Dashboard() {
                 </button>
               </div>
 
-              {activeAddAsset === p.id && (
-                <form onSubmit={(e) => handleAddAsset(e, p.id)} className="flex gap-2 mb-4 flex-wrap">
+              { activeAddAsset === p.id && (
+                <form onSubmit={ (e) => handleAddAsset(e, p.id) } className="flex gap-2 mb-4 flex-wrap">
                   <input
                     type="text"
                     placeholder="Ticker (e.g. AAPL)"
                     value={newAsset.ticker}
-                    onChange={(e) => setNewAsset({ ...newAsset, ticker: e.target.value })}
+                    onChange={ (e) => setNewAsset( { ...newAsset, ticker: e.target.value } ) }
                     className="border rounded px-3 py-1 text-sm w-36"
                     required
                   />
