@@ -35,6 +35,14 @@ def create_portfolio( portfolio: PortfolioCreate, db: Session = Depends( get_db 
 def get_portfolios( db: Session = Depends( get_db ), user_id: int = Depends( get_current_user_id ) ) :
     return db.query( Portfolio ).filter( Portfolio.owner_id == user_id ).all()
 
+@router.delete( "/{portfolio_id}", status_code=204 )
+def delete_port( portfolio_id: int, db: Session = Depends( get_db ), user_id: int = Depends( get_current_user_id ) ) :
+    portfolio = db.query( Portfolio ).filter( Portfolio.id == portfolio_id, Portfolio.owner_id == user_id ).first() 
+    if not portfolio : 
+        raise HTTPException( status_code=404, detail="Portfolio not found :/" )
+    db.delete( portfolio )
+    db.commit() 
+
 
 @router.post( "/{portfolio_id}/assets", response_model=AssetOut )
 def add_asset( portfolio_id: int, asset: AssetCreate, db: Session = Depends( get_db ), user_id: int = Depends( get_current_user_id ) ) :
@@ -46,3 +54,14 @@ def add_asset( portfolio_id: int, asset: AssetCreate, db: Session = Depends( get
     db.commit()
     db.refresh( new_asset )
     return new_asset
+
+@router.delete( "/{portfolio_id}/assets/{asset_id}", status_code=204 )
+def delete_asset( portfolio_id: int, asset_id: int, db: Session = Depends( get_db ), user_id: int = Depends( get_current_user_id ) ) : 
+    portfolio = db.query( Portfolio ).filter( Portfolio.id == portfolio_id, Portfolio.owner_id == user_id ).first() 
+    if not portfolio : 
+        raise HTTPException( status_code=404, detail="Portfolio not found, try again" )
+    asset = db.query( Asset ).filter( Asset.id == asset_id, Asset.portfolio_id == portfolio_id ).first() 
+    if not asset : 
+        raise HTTPException( status_code=404, detail="Asset not found, try again" )
+    db.delete( asset )
+    db.commit() 

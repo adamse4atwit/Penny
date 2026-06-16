@@ -1,7 +1,7 @@
 # For stock quotes and history through yFinance 
 
 from fastapi import APIRouter, HTTPException
-import yfinance as yf
+import yfinance as yf # unofficial API for Yahoo Finance 
 
 router = APIRouter()
 

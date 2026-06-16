@@ -32,7 +32,7 @@ function Login()
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white px-8 py-10 rounded-xl shadow-md w-full max-w-md"> 
+      <div className="bg-white px-8 py-10 rounded-lg w-full max-w-md"> 
 
         {/* Logo */}
         <div className="flex flex-col items-center mb-8"> 
@@ -40,7 +40,7 @@ function Login()
             <span className="text-white text-xl font-bold">Penny</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Sign into Penny</h1>
-          <p className="text-sm text-gray-500 mt-1">Track your investments in one place!</p>
+          <p className="text-sm text-gray-500 mt-1 font-style: italic">Track your investments in one place!</p>
         </div>
 
         { error && ( 
@@ -77,7 +77,7 @@ function Login()
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-800 hover:bg-blue-900 disabled:bg-blue-300 text-white py-2.5 rounded-lg font-medium text-sm transition-colors"
+            className="w-full bg-blue-800 hover:bg-blue-900 disabled:bg-blue-800 text-white py-2.5 rounded-lg font-medium text-sm transition-colors"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -85,7 +85,7 @@ function Login()
 
         <p className="text-sm mt-6 text-center text-gray-500">
           No account?{' '}
-          <Link to="/register" className="text-blue-900 font-medium hover:underline">Register</Link>
+          <Link to="/register" className="text-blue-900 font-medium hover:text-blue-800">Register here</Link>
         </p>
       </div>
     </div>

@@ -14,7 +14,7 @@ class Portfolio(Base) :
     created_at = Column( DateTime, default=datetime.utcnow )
 
     owner = relationship( "User", back_populates="portfolios" )
-    assets= relationship( "Asset", back_populates="portfolio" )
+    assets= relationship( "Asset", back_populates="portfolio", cascade="all, delete-orphan" )
 
 class Asset(Base) :
     __tablename__ = "assets"
