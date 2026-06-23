@@ -1,10 +1,11 @@
 # Router that includes sub-routers 
 
 from fastapi import APIRouter
-from routes import auth, portfolio, market
+from routes import auth, portfolio, market, ai 
 
 router = APIRouter()
 
 router.include_router( auth.router, prefix="/auth", tags=[ "auth" ] )
 router.include_router( portfolio.router, prefix="/portfolios", tags=[ "portfolios" ] )
 router.include_router( market.router, prefix="/market", tags=[ "market" ] )
+router.include_router( ai.router, prefix="/ai", tags=[ "ai" ] )
