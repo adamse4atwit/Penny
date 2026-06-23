@@ -12,6 +12,9 @@ function Dashboard() {
   const [activeAddAsset, setActiveAddAsset] = useState( null )
   const [newAsset, setNewAsset] = useState( { ticker: '', shares: '', purchase_price: '' } )
   const [prices, setPrices] = useState( {} )
+    const [recommendation, setRecommendation] = useState( '' )
+  const [recLoading, setRecLoading] = useState( false )
+
 
   function fetchPrices( portfolioList ) 
   {
@@ -97,6 +100,21 @@ function Dashboard() {
     }
   }
 
+  async function handleGetRecommendation()
+  {
+    setRecLoading( true )
+    setRecommendation( '' )
+    try {
+      const res = await api.post( '/ai/recommendations' )
+      setRecommendation( res.data.recommendation )
+    } catch {
+      setError( 'Failed to get recommendation. :/' )
+    } finally {
+      setRecLoading( false )
+    }
+  }
+
+
   if ( loading ) return ( 
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <p className="text-gray-400 text-sm">Loading portfolios...</p>
@@ -141,6 +159,23 @@ function Dashboard() {
             !! {error}
           </div>
         ) }
+        <button
+          onClick={ handleGetRecommendation }
+          disabled={ recLoading }
+          className="text-sm bg-blue-700 text-white font-medium px-4 py-1.5 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 mb-3"
+            >{ recLoading ? 'Thinking…' : 'AI Insight' }
+        </button>
+        { recommendation && (
+          <div className="bg-blue-50 border-b border-blue-200 rounded-xl px-5 py-4 mb-6">
+            <div className="flex justify-between items-start">
+              <h2 className="text-sm font-semibold text-blue-900 mb-2 font: italic">Penny's AI Insight</h2>
+              <button onClick={ () => setRecommendation('') } className="text-blue-400 text-sm hover:text-blue-600">x</button>
+            </div>
+            <p className="text-sm text-gray-700 whitespace-pre-line">{ recommendation }</p>
+          </div>
+        ) }
+
+
 
         {/* Creating new port */}
         { showCreateForm && (
