@@ -8,8 +8,6 @@ class Settings(BaseSettings):
     anthropic_api_key: str
     anthropic_base_url: str = "https://api.anthropic.com"
     ai_model: str = "claude-haiku-4-5-20251001"
-    openclaw_base_url: str = "http://127.0.0.1:18789"
-    openclaw_api_key: str
 
     class Config:
         env_file = "../../.env"
