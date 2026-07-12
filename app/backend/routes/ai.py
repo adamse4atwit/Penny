@@ -7,10 +7,21 @@ from app.config import settings
 from models.portfolio import Portfolio
 from routes.portfolio import get_current_user_id
 import yfinance as yf
-import httpx
+import anthropic 
 
 router = APIRouter()
 
+client = anthropic.Anthropic( 
+    api_key=settings.anthropic_api_key, 
+    base_url=settings.anthropic_base_url,
+)
+
+system_prompt = ( 
+    "You are Penny, a helpful financial assistant for an regular investor."
+    "Given a portfolio, give a short, plain-language recommendation (4-5 sentences)."
+    "Comment on diversification, any concentration risks, and one or two concrete suggestions for improvement."
+    "This is mainly educational but acts as an insightful and professional assistant."
+)
 
 def current_price( ticker: str ) :
     try:
@@ -36,39 +47,20 @@ def get_recommendation( db: Session = Depends( get_db ), user_id: int = Depends(
         return { "recommendation": "Add some assets to your portfolio to start. I'll help give some advice." }
 
     holdings = "\n".join( lines )
-    prompt = (
-        "You are Penny, a helpful financial assistant for a student investor. "
-        "Given the portfolio below, give a short, plain-language recommendation (4-6 sentences). "
-        "Comment on diversification, any concentration risk, and one or two concrete suggestions. "
-        "This is educational, not professional financial advice.\n\n"
-        f"Portfolio holdings:\n{holdings}"
-    )
 
-    payload = {
-        "model": settings.ai_model,
-        "max_tokens": 600,
-        "messages": [ {"role": "user", "content": prompt} ],
-    }
-
-    headers = {
-        "Authorization": f"Bearer {settings.openclaw_api_key}",
-        "Content-Type": "application/json",
-    }
-
-    try:
-        with httpx.Client() as client :
-            response = client.post(
-                f"{settings.openclaw_base_url}/api/messages",
-                json=payload,
-                headers=headers,
-                timeout=30.0,
-            )
-            response.raise_for_status()
-            data = response.json()
-            text = data["content"][0]["text"]
-    except httpx.HTTPStatusError as e:
-        raise HTTPException( status_code=502, detail=f"OpenClaw API error: {e.response.status_code} - {e.response.text}" )
-    except Exception as e:
-        raise HTTPException( status_code=502, detail=f"AI service error: {e}" )
-
-    return {"recommendation": text}
+    try: 
+        response = client.messages.create( 
+            model=settings.ai_model, 
+            max_tokens=600, 
+            system=system_prompt, 
+            messages=[ 
+                { "role": "user", "content": f"Portfolio holdings:\n{holdings}" }
+            ],
+        )
+        text = next( ( block.text for block in response.content if block.type == "text" ), "" )
+    except anthropic.APIStatusError as e : 
+        raise HTTPException( status_code=502, detail=f"Claude API error: {e.status_code} - {e.message}" )
+    except anthropic.APIConnectionError : 
+        raise HTTPException( status_code=502, detail="Could not reach the Claude API" )
+    
+    return { "recommendation": text }
