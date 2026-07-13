@@ -3,12 +3,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from models.portfolio import Portfolio, Asset
-from schemas.portfolio import PortfolioCreate, PortfolioOut, AssetCreate, AssetOut
+from models.portfolio import Portfolio, Asset, PhysicalAsset
+from schemas.portfolio import PortfolioCreate, PortfolioOut, AssetCreate, AssetOut, PhysicalAssetCreate, PhysicalAssetOut
 from routes.auth import create_access_token
 from jose import jwt, JWTError
 from app.config import settings
 from fastapi.security import OAuth2PasswordBearer
+
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer( tokenUrl="/auth/login" )
@@ -43,7 +44,7 @@ def delete_port( portfolio_id: int, db: Session = Depends( get_db ), user_id: in
     db.delete( portfolio )
     db.commit() 
 
-
+# Stock assets
 @router.post( "/{portfolio_id}/assets", response_model=AssetOut )
 def add_asset( portfolio_id: int, asset: AssetCreate, db: Session = Depends( get_db ), user_id: int = Depends( get_current_user_id ) ) :
     portfolio = db.query( Portfolio ).filter( Portfolio.id == portfolio_id, Portfolio.owner_id == user_id ).first()
@@ -65,3 +66,26 @@ def delete_asset( portfolio_id: int, asset_id: int, db: Session = Depends( get_d
         raise HTTPException( status_code=404, detail="Asset not found, try again" )
     db.delete( asset )
     db.commit() 
+
+# physial assets 
+@router.post( "/{portfolio_id}/physical-assets", response_model=PhysicalAssetOut )
+def add_physical_asset( portfolio_id: int, asset: PhysicalAssetCreate, db: Session = Depends( get_db ), user_id: int = Depends( get_current_user_id ) ) :
+    portfolio = db.query( Portfolio ).filter( Portfolio.id == portfolio_id, Portfolio.owner_id == user_id ).first()
+    if not portfolio :
+        raise HTTPException( status_code=404, detail="Portfolio not found" )
+    new_asset = PhysicalAsset( **asset.model_dump(), portfolio_id=portfolio_id )
+    db.add( new_asset )
+    db.commit()
+    db.refresh( new_asset )
+    return new_asset
+
+@router.delete( "/{portfolio_id}/physical-assets/{asset_id}", status_code=204 )
+def delete_physical_asset( portfolio_id: int, asset_id: int, db: Session = Depends( get_db ), user_id: int = Depends( get_current_user_id ) ) :
+    portfolio = db.query( Portfolio ).filter( Portfolio.id == portfolio_id, Portfolio.owner_id == user_id ).first()
+    if not portfolio :
+        raise HTTPException( status_code=404, detail="Portfolio not found, try again" )
+    asset = db.query( PhysicalAsset ).filter( PhysicalAsset.id == asset_id, PhysicalAsset.portfolio_id == portfolio_id ).first()
+    if not asset :
+        raise HTTPException( status_code=404, detail="Asset not found, try again" )
+    db.delete( asset )
+    db.commit()
