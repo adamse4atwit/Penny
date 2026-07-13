@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
+import PhysicalAssetForm from '../components/PhysicalAssetForm'
+import PhysicalAssetCard from '../components/PhysicalAssetCard'
+import { money, currentValue } from '../config/assetCategories'
+
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -12,8 +16,11 @@ function Dashboard() {
   const [activeAddAsset, setActiveAddAsset] = useState( null )
   const [newAsset, setNewAsset] = useState( { ticker: '', shares: '', purchase_price: '' } )
   const [prices, setPrices] = useState( {} )
-    const [recommendation, setRecommendation] = useState( '' )
+  const [recommendation, setRecommendation] = useState( '' )
   const [recLoading, setRecLoading] = useState( false )
+  const [activeAddPhysical, setActiveAddPhysical] = useState( null )
+  const [estimateLoading, setEstimateLoading] = useState( null ) // id currently estimating
+
 
 
   function fetchPrices( portfolioList ) 
@@ -111,6 +118,45 @@ function Dashboard() {
       setError( 'Failed to get recommendation. :/' )
     } finally {
       setRecLoading( false )
+    }
+  }
+
+    async function handleAddPhysical( payload, portfolioId )
+  {
+    try {
+      await api.post( `/portfolios/${portfolioId}/physical-assets`, payload )
+      setActiveAddPhysical( null )
+      loadPortfolios()
+    } catch {
+      setError( 'Failed to add item. :/' )
+  }
+}
+
+  async function handleDeletePhysical( portfolioId, assetId )
+  {
+    try {
+      await api.delete( `/portfolios/${portfolioId}/physical-assets/${assetId}` )
+      loadPortfolios()
+    } catch {
+      setError( 'Failed to delete item. :/' )
+    }
+  }
+
+  async function handleGetEstimate( assetId )
+  {
+    setEstimateLoading( assetId )
+    try {
+      const res = await api.post( `/ai/estimate/${assetId}` )
+      const updated = res.data
+      // swap the updated item into state so we don't have to reload the whole page
+      setPortfolios( (prev) => prev.map( (p) => ( {
+        ...p,
+        physical_assets: p.physical_assets.map( (item) => item.id === updated.id ? updated : item ),
+      } ) ) )
+    } catch {
+      setError( 'Failed to get estimate. :/' )
+    } finally {
+      setEstimateLoading( null )
     }
   }
 
@@ -212,6 +258,11 @@ function Dashboard() {
                   >Add Asset
                   </button>
                   <button
+                    onClick={ () => setActiveAddPhysical( activeAddPhysical === p.id ? null : p.id ) }
+                    className="text-sm text-blue-900 font-medium rounded-md bg-blue-50 px-3 py-1 hover:bg-blue-100"
+                  >Add Item
+                  </button>
+                  <button
                     onClick={ () => handleDeletePort( p.id ) }
                       className="text-sm text-gray-900 font-medium rounded-md bg-gray-100 px-3 py-1 hover:bg-red-50"
                     >x
@@ -249,7 +300,38 @@ function Dashboard() {
                   <button type="button" onClick={ () => setActiveAddAsset(null) } className="text-gray-400 text-sm hover:text-gray-600 px-2">Cancel</button>
                 </form>
               ) }
+                            { activeAddPhysical === p.id && (
+                <PhysicalAssetForm
+                  onSubmit={ (payload) => handleAddPhysical( payload, p.id ) }
+                  onCancel={ () => setActiveAddPhysical( null ) }
+                />
+              ) }
 
+              {/* Property & items */}
+              { p.physical_assets && p.physical_assets.length > 0 && (
+                <div className="mt-6 mb-6">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <h3 className="text-xs text-gray-500 uppercase tracking-wide font-medium">Property &amp; Items</h3>
+                    <p className="text-xs text-gray-500">
+                      { p.physical_assets.length } item{ p.physical_assets.length === 1 ? '' : 's' } ·{' '}
+                      <span className="font-semibold text-gray-900">
+                        { money( p.physical_assets.reduce( (sum, item) => sum + currentValue( item ), 0 ) ) }
+                      </span>
+                    </p>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    { p.physical_assets.map( (item) => (
+                      <PhysicalAssetCard
+                        key={ item.id }
+                        item={ item }
+                        estimating={ estimateLoading === item.id }
+                        onEstimate={ handleGetEstimate }
+                        onDelete={ (assetId) => handleDeletePhysical( p.id, assetId ) }
+                      />
+                    ) ) }
+                  </div>
+                </div>
+              ) }
               {p.assets.length === 0 ? (
                 <p className="text-gray-400 text-sm py-4 text-center">No assets yet. Add one above.</p>
               ) : (
