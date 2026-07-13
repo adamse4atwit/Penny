@@ -27,6 +27,24 @@ class PortfolioOut(BaseModel) :
     name: str 
     created_at: datetime 
     assets: List[AssetOut] = [] 
+    physical_assets: List[PhysicalAssetOut] = []
+
+class PhysicalAssetCreate(BaseModel) :
+    name: str
+    category: str
+    initial_value: float
+    purchase_year: int
+    location: Optional[str] = None
+    details: Optional[str] = None
+
+class PhysicalAssetOut(BaseModel) :
+    id: int
+    name: str
+    category: str
+    initial_value: float
+    purchase_year: int
+    location: Optional[str] = None
+    details: Optional[str] = None
 
     class Config : 
         from_attributes = True 
