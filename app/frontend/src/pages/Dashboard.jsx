@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'
 import PhysicalAssetForm from '../components/PhysicalAssetForm'
 import PhysicalAssetCard from '../components/PhysicalAssetCard'
+import AllocationChart from '../components/AllocationChart'
+import AiInsight from '../components/AiInsight'
 import { money, currentValue } from '../config/assetCategories'
 
 
@@ -16,8 +18,10 @@ function Dashboard() {
   const [activeAddAsset, setActiveAddAsset] = useState( null )
   const [newAsset, setNewAsset] = useState( { ticker: '', shares: '', purchase_price: '' } )
   const [prices, setPrices] = useState( {} )
-  const [recommendation, setRecommendation] = useState( '' )
+  const [recommendation, setRecommendation] = useState( null )
   const [recLoading, setRecLoading] = useState( false )
+  const [riskTolerance, setRiskTolerance] = useState( '' )
+  const [financialGoal, setFinancialGoal] = useState( '' )
   const [activeAddPhysical, setActiveAddPhysical] = useState( null )
   const [estimateLoading, setEstimateLoading] = useState( null ) // id currently estimating
 
@@ -35,8 +39,9 @@ function Dashboard() {
     } )
   }
 
-  function loadPortfolios() 
-  {
+  // useCallback so the effect below can depend on it without re-running on
+  // every render. Only navigate ever changes, and that is stable.
+  const loadPortfolios = useCallback( () => {
     api.get( '/portfolios/' )
       .then( (res) => {
         setPortfolios( res.data )
@@ -47,9 +52,9 @@ function Dashboard() {
         navigate( '/login' )
       })
       .finally( () => setLoading(false) )
-  }
+  }, [navigate] )
 
-  useEffect( () => { loadPortfolios() }, [navigate] )
+  useEffect( () => { loadPortfolios() }, [loadPortfolios] )
 
   function handleLogout() 
   {
@@ -110,10 +115,15 @@ function Dashboard() {
   async function handleGetRecommendation()
   {
     setRecLoading( true )
-    setRecommendation( '' )
+    setRecommendation( null )
     try {
-      const res = await api.post( '/ai/recommendations' )
-      setRecommendation( res.data.recommendation )
+      // Send null rather than '' for blanks so the backend can tell "not answered"
+      // apart from an actual answer.
+      const res = await api.post( '/ai/recommendations', {
+        risk_tolerance: riskTolerance || null,
+        financial_goal: financialGoal || null,
+      } )
+      setRecommendation( res.data )
     } catch {
       setError( 'Failed to get recommendation. :/' )
     } finally {
@@ -205,20 +215,35 @@ function Dashboard() {
             !! {error}
           </div>
         ) }
-        <button
-          onClick={ handleGetRecommendation }
-          disabled={ recLoading }
-          className="text-sm bg-blue-700 text-white font-medium px-4 py-1.5 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50 mb-3"
-            >{ recLoading ? 'Thinking…' : 'AI Insight' }
-        </button>
+        {/* Optional context for Penny. Both blank still works, it just gives
+            more general advice. */}
+        <div className="flex flex-wrap gap-2 items-center mb-4">
+          <select
+            value={ riskTolerance }
+            onChange={ (e) => setRiskTolerance( e.target.value ) }
+            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent"
+          >
+            <option value="">Risk tolerance…</option>
+            <option value="conservative">Conservative</option>
+            <option value="moderate">Moderate</option>
+            <option value="aggressive">Aggressive</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Goal, i.e. buy a house in 5 years"
+            value={ financialGoal }
+            onChange={ (e) => setFinancialGoal( e.target.value ) }
+            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-56 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent"
+          />
+          <button
+            onClick={ handleGetRecommendation }
+            disabled={ recLoading }
+            className="text-sm bg-blue-700 text-white font-medium px-4 py-1.5 rounded-md hover:bg-blue-800 transition-colors disabled:opacity-50"
+          >{ recLoading ? 'Thinking…' : 'AI Insight' }
+          </button>
+        </div>
         { recommendation && (
-          <div className="bg-blue-50 border-b border-blue-200 rounded-xl px-5 py-4 mb-6">
-            <div className="flex justify-between items-start">
-              <h2 className="text-sm font-semibold text-blue-900 mb-2 font: italic">Penny's AI Insight</h2>
-              <button onClick={ () => setRecommendation('') } className="text-blue-400 text-sm hover:text-blue-600">x</button>
-            </div>
-            <p className="text-sm text-gray-700 whitespace-pre-line">{ recommendation }</p>
-          </div>
+          <AiInsight insight={ recommendation } onClose={ () => setRecommendation( null ) } />
         ) }
 
 
@@ -269,6 +294,8 @@ function Dashboard() {
                   </button>
                 </div>
               </div>
+
+              <AllocationChart portfolio={ p } prices={ prices } />
 
               { activeAddAsset === p.id && (
                 <form onSubmit={ (e) => handleAddAsset(e, p.id) } className="flex gap-2 mb-5 flex-wrap">
