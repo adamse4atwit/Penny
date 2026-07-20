@@ -17,7 +17,7 @@ oauth2_scheme = OAuth2PasswordBearer( tokenUrl="/auth/login" )
 
 def get_current_user_id( token: str = Depends( oauth2_scheme ) ) -> int :
     try:
-        payload = jwt.decode( token, settings.jwt_secret_key, algorithms=["HS256"] )
+        payload = jwt.decode( token, settings.jwt_secret_key, algorithms=[ settings.jwt_algorithm ] )
         return int( payload.get( "sub" ) )
     except JWTError :
         raise HTTPException( status_code=401, detail="Invalid token" )

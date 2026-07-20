@@ -8,8 +8,9 @@ from models.user import User
 from schemas.user import UserCreate, UserLogin, UserOut 
 from app.config import settings 
 from passlib.context import CryptContext
-from jose import jwt 
-from datetime import datetime, timedelta
+from jose import jwt
+from app.utils import utc_now
+from datetime import timedelta
 
 router = APIRouter() 
 pwd_context = CryptContext( schemes=[ "bcrypt" ], deprecated="auto" )
@@ -20,11 +21,13 @@ def hash_password( password: str ) -> str :
 def verify_password( plain: str, hashed: str ) -> bool :
     return pwd_context.verify( plain, hashed )
 
-def create_access_token( data: dict ) -> str : 
-    to_encode = data.copy() 
-    expire = datetime.utcnow() + timedelta( minutes=30 ) # 30 min lapse
+def create_access_token( data: dict ) -> str :
+    to_encode = data.copy()
+    # Read the lifetime and algorithm from settings instead of hardcoding them,
+    # so changing .env actually takes effect
+    expire = utc_now() + timedelta( minutes=settings.access_token_expire_minutes )
     to_encode.update( {"exp": expire } )
-    return jwt.encode ( to_encode, settings.jwt_secret_key, algorithm="HS256" ) 
+    return jwt.encode ( to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm )
 
 # User regristration
 @router.post( "/register", response_model=UserOut, status_code=status.HTTP_201_CREATED )
