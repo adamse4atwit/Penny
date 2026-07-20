@@ -1,6 +1,9 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    # Class-based Config is deprecated in Pydantic v2 and removed in v3
+    model_config = SettingsConfigDict( env_file="../../.env" )
+
     database_url: str
     jwt_secret_key: str
     jwt_algorithm: str = 'HS256'
@@ -9,7 +12,4 @@ class Settings(BaseSettings):
     anthropic_base_url: str = "https://api.anthropic.com"
     ai_model: str = "claude-haiku-4-5-20251001"
 
-    class Config:
-        env_file = "../../.env"
-
-settings = Settings() 
+settings = Settings()

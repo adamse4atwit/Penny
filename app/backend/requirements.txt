@@ -12,3 +12,7 @@ passlib[bcrypt]
 psycopg2-binary
 pydantic[email]
 pydantic-settings
+
+# Testing
+pytest
+httpx
