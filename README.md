@@ -1,8 +1,8 @@
 # Penny
 
-Penny is an AI financial portfolio assistant that helps users track, analyze, and optimize what they own using data-driven insights and artificial intelligence. Alongside stock holdings, users can log physical assets — houses, cars, boats, jewelry, equipment — and Penny estimates what each is worth today based on its age, condition, location, and category-specific details. The AI insight covers the whole picture and is tailored to the user's stated risk tolerance and financial goal.
+Penny is an AI financial portfolio assistant that helps users track, analyze, and optimize what they own using data-driven insights and artificial intelligence. Alongside stock holdings, users can log physical assets (houses, cars, boats, jewelry, equipment) and Penny estimates what each is worth today based on its age, condition, location, and category-specific details. The AI insight covers the whole picture and is tailored to the user's stated risk tolerance and financial goal.
 
-COMP 5500 senior project — Emily Adams and Nathaly Phrasavath.
+COMP 5500 senior project. Emily Adams and Nathaly Phrasavath.
 
 ## Architecture
 
@@ -35,11 +35,11 @@ app/
         └── config/             Asset category definitions and helpers
 ```
 
-**Data model.** A `User` owns many `Portfolio` rows. Each portfolio holds `Asset` rows (stocks: ticker, shares, purchase price) and `PhysicalAsset` rows (items: name, category, make/model, condition, a JSON `specs` blob for category-specific fields, purchase price and year, location). Physical assets also carry Penny's estimate — `est_low`, `est_high`, `est_summary`, `estimated_at` — populated when the user asks for one.
+**Data model.** A `User` owns many `Portfolio` rows. Each portfolio holds `Asset` rows (stocks: ticker, shares, purchase price) and `PhysicalAsset` rows (items: name, category, make/model, condition, a JSON `specs` blob for category-specific fields, purchase price and year, location). Physical assets also carry Penny's estimate, `est_low`, `est_high`, `est_summary`, `estimated_at`, populated when the user asks for one.
 
 **Auth.** Register and login are open; everything else requires a JWT bearer token. `get_current_user_id` in `routes/portfolio.py` decodes the token and every query filters on the resulting owner ID, so users only ever see their own data.
 
-**AI.** Both Claude calls use tool schemas rather than free text, so the backend gets typed fields back and the frontend renders them directly — no markdown ever reaches the page. `report_insight` returns a headline, observations, and suggestions; `report_estimate` returns a low/high resale range plus a summary.
+**AI.** Both Claude calls use tool schemas rather than free text, so the backend gets typed fields back and the frontend renders them directly, no markdown ever reaches the page. `report_insight` returns a headline, observations, and suggestions; `report_estimate` returns a low/high resale range plus a summary.
 
 ## Prerequisites
 
@@ -101,7 +101,7 @@ source venv/bin/activate
 pytest
 ```
 
-The suite covers registration, login, token rejection, portfolio and asset CRUD, owner scoping, and physical asset serialization. It runs against a throwaway SQLite file rather than the Postgres database, and only exercises AI paths that return before Claude is called — so tests need no network connection and spend no API credits.
+The suite covers registration, login, token rejection, portfolio and asset CRUD, owner scoping, and physical asset serialization. It runs against a throwaway SQLite file rather than the Postgres database, and only exercises AI paths that return before Claude is called. So tests need no network connection and spend no API credits.
 
 ## API
 
@@ -124,6 +124,6 @@ All routes except `/auth/*` require an `Authorization: Bearer <token>` header.
 
 ## Notes
 
-- `risk_tolerance` must be one of `conservative`, `moderate`, or `aggressive`. Both it and `financial_goal` are optional — omitting them just yields more general advice.
+- `risk_tolerance` must be one of `conservative`, `moderate`, or `aggressive`. Both it and `financial_goal` are optional, omitting them just yields more general advice.
 - The allocation chart values stocks at their live price when one is available and physical items at the midpoint of Penny's estimate, falling back to purchase price in both cases.
 - Estimates and insights are educational, not professional financial advice.
