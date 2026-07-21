@@ -1,92 +1,126 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../api'
+import Logo from '../components/Logo'
+import GoogleButton from '../components/GoogleButton'
+import AppleButton from '../components/AppleButton'
 
-function Login() 
+function Login()
 {
   const navigate = useNavigate()
   const [ email, setEmail ] = useState( '' )
   const [ password, setPassword ] = useState( '' )
-  const [ error, setError ] = useState( '' ) 
+  const [ error, setError ] = useState( '' )
   const [ loading, setLoading ] = useState( false )
 
-  async function handleSubmit(e) 
+  async function handleSubmit(e)
   {
     e.preventDefault()
     setError( '' )
     setLoading( true )
-    try 
+    try
     {
       const form = new URLSearchParams()
       form.append( 'username', email ) //username = email
-      form.append( 'password', password ) //password = password 
+      form.append( 'password', password ) //password = password
       const res = await api.post( '/auth/login', form ) //redirection
       localStorage.setItem( 'token', res.data.access_token ) //stores login auth token
-      navigate( '/dashboard' ) //redirection 
+      navigate( '/dashboard' ) //redirection
     } catch {
       setError( 'Invalid email or password.' )
-    } finally { 
+    } finally {
       setLoading( false )
     }
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white px-8 py-10 rounded-lg w-full max-w-md"> 
+  // Shared by both fields so the two inputs can't drift apart visually.
+  const inputClass = "w-full bg-sand-50 border border-sand-300 rounded-xl px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 transition-colors hover:border-sand-400 focus:border-clay-600"
 
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8"> 
-          <div className="w-25 h-12 bg-blue-900 rounded-2xl flex items-center justify-center mb-3"> 
-            <span className="text-white text-xl font-bold">Penny</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Sign into Penny</h1>
-          <p className="text-sm text-gray-500 mt-1 font-style: italic">Track your investments in one place!</p>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-sand-100 px-4 py-10">
+      <div className="w-full max-w-md">
+
+        <div className="flex flex-col items-center mb-7">
+          <Logo size="lg" />
+          <h1 className="text-2xl font-bold text-ink-900 mt-5">Welcome back</h1>
+          <p className="text-sm text-ink-500 mt-1.5">Track your investments in one place.</p>
         </div>
 
-        { error && ( 
-          <div className="bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg px-4 py-3 mb-5">
-            {error}
+        {/* The card is raised off the tan page with a soft shadow rather than a
+            heavy border, which keeps the whole screen feeling light. */}
+        <div className="bg-sand-50 shadow-sm shadow-clay-800/5 px-7 py-8 rounded-2xl">
+
+          { error && (
+            <div
+              role="alert"
+              className="animate-rise bg-loss/10 text-loss text-sm rounded-xl px-4 py-3 mb-5"
+            >
+              { error }
             </div>
-        ) }
+          ) }
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-transparent"
-            />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-ink-700 mb-1.5">Email</label>
+              <input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className={ inputClass }
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-ink-700 mb-1.5">Password</label>
+              <input
+                id="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className={ inputClass }
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-clay-700 hover:bg-clay-800 disabled:opacity-60 disabled:hover:bg-clay-700 text-sand-50 py-2.5 rounded-xl font-medium text-sm transition-colors"
+            >
+              {loading ? 'Signing in…' : 'Sign In'}
+            </button>
+          </form>
+
+          {/* Divider between the two sign-in paths. The line is drawn with a
+              border on each side so the label sits in a gap rather than on top. */}
+          <div className="flex items-center gap-3 my-6">
+            <span className="flex-1 border-t border-sand-300" />
+            <span className="text-xs text-ink-400">or</span>
+            <span className="flex-1 border-t border-sand-300" />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-transparent"
-            />
+          {/* Both providers write the same token to the same key, so whichever
+              one the user picks the rest of the app can't tell the difference. */}
+          <div className="space-y-3">
+            <GoogleButton onError={ setError } />
+            <AppleButton onError={ setError } />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-800 hover:bg-blue-900 disabled:bg-blue-800 text-white py-2.5 rounded-lg font-medium text-sm transition-colors"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
+        </div>
 
-        <p className="text-sm mt-6 text-center text-gray-500">
+        <p className="text-sm mt-6 text-center text-ink-500">
           No account?{' '}
-          <Link to="/register" className="text-blue-900 font-medium hover:text-blue-800">Register here</Link>
+          <Link to="/register" className="text-clay-700 font-medium underline underline-offset-2 decoration-clay-500/40 hover:decoration-clay-700 transition-colors">
+            Register here
+          </Link>
         </p>
+
       </div>
     </div>
   )

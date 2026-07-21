@@ -1,1 +1,103 @@
 @import "tailwindcss";
+
+/* Penny's design tokens.
+ *
+ * Everything visual pulls from here, so re-theming is a change in one file
+ * rather than a find-and-replace across every component. Naming follows the
+ * same shape as Tailwind's own scales (50 lightest -> 900 darkest) so the
+ * generated utilities read the way you'd expect: bg-sand-100, text-ink-500,
+ * border-sand-300.
+ *
+ * Contrast was measured against all three surfaces below. ink-500 and every
+ * color darker than it clear WCAG AA (4.5:1) on sand-50, sand-100 and
+ * sand-200. ink-400 only clears the large-text bar, so it is reserved for
+ * decoration (separators, placeholder glyphs) and never for body copy.
+ */
+@theme {
+  /* Surfaces, lightest to deepest */
+  --color-sand-50  : #FDFBF7;   /* cards and other raised surfaces */
+  --color-sand-100 : #F7F1E7;   /* page background */
+  --color-sand-200 : #EFE6D8;   /* inset fills, hover states */
+  --color-sand-300 : #E2D5C1;   /* default borders */
+  --color-sand-400 : #CBBAA0;   /* emphasized borders */
+
+  /* Text, darkest to lightest */
+  --color-ink-900 : #2E2823;    /* headings, values */
+  --color-ink-700 : #4F4639;    /* body copy */
+  --color-ink-500 : #6B6053;    /* labels, secondary copy */
+  --color-ink-400 : #847766;    /* decoration only, see note above */
+
+  /* Clay is the accent: buttons, links, active chips. */
+  --color-clay-500 : #A0855F;
+  --color-clay-600 : #7E6342;
+  --color-clay-700 : #6F573B;
+  --color-clay-800 : #574430;
+
+  /* Gain and loss, warm-shifted so they sit inside the tan palette instead of
+     reading as stock-ticker neon. Both clear AA on every surface. */
+  --color-gain : #2F6B4A;
+  --color-loss : #A93F2C;
+
+  /* Toggled panels (add-asset form, AI insight) slide in rather than snapping
+     into place, so the page shifting under the user is explained by motion. */
+  --animate-rise : rise 200ms ease-out;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY( -4px ); }
+    to   { opacity: 1; transform: translateY( 0 ); }
+  }
+
+  /* The landing hero's background lines draw themselves in on load, staggered
+     one after another, so the fan resolves into a rising trend rather than
+     appearing all at once. */
+  --animate-draw : draw 1.4s cubic-bezier( 0.33, 0, 0.15, 1 ) both;
+
+  @keyframes draw {
+    from { stroke-dashoffset: 1; }
+    to   { stroke-dashoffset: 0; }
+  }
+}
+
+@layer base {
+  body {
+    background-color: var( --color-sand-100 );
+    color: var( --color-ink-900 );
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* One focus ring for the whole app. Declaring it once here means every
+     button, input and link is keyboard-visible by default, instead of each
+     component having to remember its own focus: utilities. */
+  :focus-visible {
+    outline: 2px solid var( --color-clay-600 );
+    outline-offset: 2px;
+  }
+
+  /* Anyone who has asked their system to reduce motion still gets the landing
+     artwork, just already drawn. The doubled class is deliberate: base layer
+     is emitted before utilities, so a plain .animate-draw here would lose the
+     cascade to the utility it is trying to switch off. */
+  @media ( prefers-reduced-motion: reduce ) {
+    .animate-draw.animate-draw { animation: none; stroke-dashoffset: 0; }
+  }
+
+  /* Drop the up/down spinner on number inputs. Nudging a price or a year one
+     step at a time isn't useful, and the arrows crowd an already tight field. */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  /* Respect the OS "reduce motion" setting rather than animating regardless. */
+  @media ( prefers-reduced-motion: reduce ) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
