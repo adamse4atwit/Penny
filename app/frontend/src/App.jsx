@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import RequireAuth from './components/RequireAuth'
@@ -12,12 +13,12 @@ function App()
 {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading…</p>
+      <div className="min-h-screen bg-sand-100 flex items-center justify-center">
+        <p className="text-ink-500 text-sm">Loading…</p>
       </div>
     }>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={
@@ -25,8 +26,8 @@ function App()
             <Dashboard />
           </RequireAuth>
         } />
-        {/* Anything else goes back to login rather than rendering a blank page */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Anything else lands on the front page rather than a blank screen */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   )

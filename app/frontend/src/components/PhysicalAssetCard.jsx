@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { categoryInfo, money } from '../config/assetCategories'
+import { TrashIcon } from './icons'
 
-function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } ) 
+function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
 {
   const [showWhy, setShowWhy] = useState( false )
   const info = categoryInfo( item.category )
+  const Icon = info.icon
 
   const estimated = item.est_low != null && item.est_high != null
   const mid = estimated ? ( item.est_low + item.est_high ) / 2 : null
@@ -14,25 +16,30 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
   const subtitle = [ item.make, item.model, item.year_made, item.condition ].filter( Boolean ).join( ' · ' )
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-gray-300 transition-all">
+    <div className="group rounded-2xl border border-sand-300 bg-sand-50 p-5 shadow-sm shadow-clay-800/5 hover:shadow-md hover:shadow-clay-800/10 hover:border-sand-400 transition-all duration-200">
 
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-2xl ring-1 ring-gray-100">
-          { info.icon }
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sand-200 text-clay-700 ring-1 ring-sand-300">
+          <Icon className="h-6 w-6" />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="font-semibold text-gray-900 truncate">{ item.name }</p>
-              { subtitle && <p className="text-xs text-gray-500 mt-0.5 truncate">{ subtitle }</p> }
+              <p className="font-semibold text-ink-900 truncate">{ item.name }</p>
+              { subtitle && <p className="text-xs text-ink-500 mt-0.5 truncate">{ subtitle }</p> }
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               <span className={ `text-xs font-medium rounded-full px-2.5 py-0.5 ring-1 ${info.badge}` }>{ info.label }</span>
+              {/* Fades in on hover so a wall of cards isn't a wall of delete
+                  buttons, but stays reachable by keyboard via focus. */}
               <button
                 onClick={ () => onDelete( item.id ) }
-                className="text-xs text-gray-400 hover:text-red-600 rounded-md px-1.5 py-0.5 hover:bg-red-50"
-              >x</button>
+                aria-label={ `Delete ${item.name}` }
+                className="text-ink-400 hover:text-loss rounded-md p-1 hover:bg-loss/10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all"
+              >
+                <TrashIcon width={ 14 } height={ 14 } />
+              </button>
             </div>
           </div>
 
@@ -40,8 +47,8 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
           { Object.keys( item.specs || {} ).length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               { Object.entries( item.specs ).map( ( [ key, value ] ) => (
-                <span key={ key } className="text-xs text-gray-600 bg-gray-50 rounded-md px-2 py-0.5 border border-gray-100">
-                  <span className="text-gray-400 capitalize">{ key.replace( /_/g, ' ' ) }</span> { value }
+                <span key={ key } className="text-xs text-ink-700 bg-sand-200/70 rounded-md px-2 py-0.5 border border-sand-300">
+                  <span className="text-ink-500 capitalize">{ key.replace( /_/g, ' ' ) }</span> { value }
                 </span>
               ) ) }
             </div>
@@ -50,26 +57,26 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
       </div>
 
       {/* Value row */}
-      <div className="mt-4 pt-4 border-t border-gray-100 flex items-end justify-between gap-3">
+      <div className="mt-4 pt-4 border-t border-sand-300 flex items-end justify-between gap-3">
         <div>
           { estimated ? (
             <>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Estimated value</p>
-              <p className="text-xl font-semibold text-gray-900 mt-0.5">
-                { money( item.est_low ) } <span className="text-gray-300 font-normal">–</span> { money( item.est_high ) }
+              <p className="text-xs text-ink-500 uppercase tracking-wide font-medium">Estimated value</p>
+              <p className="text-xl font-semibold text-ink-900 mt-0.5">
+                { money( item.est_low ) } <span className="text-ink-400 font-normal">–</span> { money( item.est_high ) }
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-ink-500 mt-1">
                 Paid { money( item.initial_value ) } in { item.purchase_year } ·{' '}
-                <span className={ delta >= 0 ? 'text-green-700 font-medium' : 'text-red-700 font-medium' }>
+                <span className={ delta >= 0 ? 'text-gain font-medium' : 'text-loss font-medium' }>
                   { delta >= 0 ? '+' : '−' }{ money( Math.abs( delta ) ) }
                 </span>
               </p>
             </>
           ) : (
             <>
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Paid</p>
-              <p className="text-xl font-semibold text-gray-900 mt-0.5">{ money( item.initial_value ) }</p>
-              <p className="text-xs text-gray-400 mt-1">Not estimated yet</p>
+              <p className="text-xs text-ink-500 uppercase tracking-wide font-medium">Paid</p>
+              <p className="text-xl font-semibold text-ink-900 mt-0.5">{ money( item.initial_value ) }</p>
+              <p className="text-xs text-ink-500 mt-1">Not estimated yet</p>
             </>
           ) }
         </div>
@@ -78,10 +85,10 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
           <button
             onClick={ () => onEstimate( item.id ) }
             disabled={ estimating }
-            className="text-xs text-blue-900 font-medium rounded-lg bg-blue-50 px-3 py-1.5 hover:bg-blue-100 disabled:opacity-50 whitespace-nowrap"
+            className="text-xs text-clay-700 font-medium rounded-lg bg-sand-200 px-3 py-1.5 hover:bg-sand-300 disabled:opacity-50 whitespace-nowrap transition-colors"
           >{ estimating ? 'Estimating…' : estimated ? 'Re-estimate' : 'Estimate value' }</button>
           { item.est_summary && (
-            <button onClick={ () => setShowWhy( !showWhy ) } className="text-xs text-gray-400 hover:text-gray-600">
+            <button onClick={ () => setShowWhy( !showWhy ) } className="text-xs text-ink-500 hover:text-ink-900 transition-colors">
               { showWhy ? 'Hide' : 'Why?' }
             </button>
           ) }
@@ -89,9 +96,9 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
       </div>
 
       { showWhy && item.est_summary && (
-        <div className="bg-blue-50 rounded-xl px-4 py-3 mt-3">
-          <p className="text-xs font-semibold text-blue-900 mb-1 italic">Penny's take</p>
-          <p className="text-sm text-gray-700 whitespace-pre-line">{ item.est_summary }</p>
+        <div className="animate-rise bg-sand-200/60 border border-sand-300 rounded-xl px-4 py-3 mt-3">
+          <p className="text-xs font-semibold text-clay-700 mb-1">Penny&apos;s take</p>
+          <p className="text-sm text-ink-700 leading-relaxed whitespace-pre-line">{ item.est_summary }</p>
         </div>
       ) }
 
