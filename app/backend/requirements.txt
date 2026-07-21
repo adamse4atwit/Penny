@@ -12,6 +12,7 @@ passlib[bcrypt]
 psycopg2-binary
 pydantic[email]
 pydantic-settings
+google-auth
 
 # Testing
 pytest

@@ -11,5 +11,11 @@ class Settings(BaseSettings):
     anthropic_api_key: str
     anthropic_base_url: str = "https://api.anthropic.com"
     ai_model: str = "claude-haiku-4-5-20251001"
+    # OAuth client ID issued by Google Cloud Console. The backend needs it to
+    # confirm an ID token was minted for *our* app and not somebody else's.
+    google_client_id: str
+    # Apple Services ID (not the App ID). The audience Apple stamps into the
+    # identity token for a web sign-in.
+    apple_client_id: str
 
 settings = Settings()
