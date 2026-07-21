@@ -16,7 +16,7 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
   const subtitle = [ item.make, item.model, item.year_made, item.condition ].filter( Boolean ).join( ' · ' )
 
   return (
-    <div className="group rounded-2xl border border-sand-300 bg-sand-50 p-5 shadow-sm shadow-clay-800/5 hover:shadow-md hover:shadow-clay-800/10 hover:border-sand-400 transition-all duration-200">
+    <div className="group sheen rounded-2xl border border-sand-300 bg-sand-50 p-5 shadow-sm shadow-clay-800/5 hover:shadow-md hover:shadow-clay-800/10 hover:border-sand-400 hover:-translate-y-0.5 transition-all duration-200">
 
       <div className="flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sand-200 text-clay-700 ring-1 ring-sand-300">
@@ -30,7 +30,7 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
               { subtitle && <p className="text-xs text-ink-500 mt-0.5 truncate">{ subtitle }</p> }
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className={ `text-xs font-medium rounded-full px-2.5 py-0.5 ring-1 ${info.badge}` }>{ info.label }</span>
+              <span className={ `text-xs font-medium rounded-full px-2.5 py-2 ${info.badge}` }>{ info.label }</span>
               {/* Fades in on hover so a wall of cards isn't a wall of delete
                   buttons, but stays reachable by keyboard via focus. */}
               <button
@@ -43,15 +43,19 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
             </div>
           </div>
 
-          {/* The category specific details, as little chips */}
+          {/* The category specific details, read as one sentence:
+              "Mileage 60000, Trim SE, Drivetrain FWD, Accidents None." The
+              label stays a shade lighter than its value so the pairs are still
+              tellable apart without a box around each one. */}
           { Object.keys( item.specs || {} ).length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              { Object.entries( item.specs ).map( ( [ key, value ] ) => (
-                <span key={ key } className="text-xs text-ink-700 bg-sand-200/70 rounded-md px-2 py-0.5 border border-sand-300">
+            <p className="text-xs text-ink-700 mt-2 leading-relaxed font-style: italic">
+              { Object.entries( item.specs ).map( ( [ key, value ], index, all ) => (
+                <span key={ key }>
                   <span className="text-ink-500 capitalize">{ key.replace( /_/g, ' ' ) }</span> { value }
+                  { index < all.length - 1 ? ', ' : '.' } 
                 </span>
               ) ) }
-            </div>
+            </p>
           ) }
         </div>
       </div>
@@ -85,11 +89,11 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
           <button
             onClick={ () => onEstimate( item.id ) }
             disabled={ estimating }
-            className="text-xs text-clay-700 font-medium rounded-lg bg-sand-200 px-3 py-1.5 hover:bg-sand-300 disabled:opacity-50 whitespace-nowrap transition-colors"
+            className="text-xs text-clay-700 font-medium rounded-lg bg-sand-100 px-3 py-1.5 hover:bg-sand-300 disabled:opacity-50 whitespace-nowrap transition-colors"
           >{ estimating ? 'Estimating…' : estimated ? 'Re-estimate' : 'Estimate value' }</button>
           { item.est_summary && (
             <button onClick={ () => setShowWhy( !showWhy ) } className="text-xs text-ink-500 hover:text-ink-900 transition-colors">
-              { showWhy ? 'Hide' : 'Why?' }
+              { showWhy ? 'Hide' : 'Why this number?' }
             </button>
           ) }
         </div>

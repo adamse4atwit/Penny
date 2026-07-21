@@ -47,6 +47,22 @@
     to   { opacity: 1; transform: translateY( 0 ); }
   }
 
+  /* A band of light travelling across a card, once, when you point at it. The
+     highlight is flanked by a faint clay tint rather than fading straight to
+     nothing: on a surface this close to white, plain white has nothing to
+     brighten, and the warm edge is what makes the sweep read at all.
+
+     `forwards` matters: without it the band snaps back to its untransformed
+     position when the run ends, which is the middle of the card, and sits
+     there for as long as you keep hovering. Holding the last frame parks it
+     off the far edge instead. */
+  --animate-glint : glint 900ms ease-out forwards;
+
+  @keyframes glint {
+    from { transform: translateX( -110% ); }
+    to   { transform: translateX( 110% ); }
+  }
+
   /* The landing hero's background lines draw themselves in on load, staggered
      one after another, so the fan resolves into a rising trend rather than
      appearing all at once. */
@@ -55,6 +71,51 @@
   @keyframes draw {
     from { stroke-dashoffset: 1; }
     to   { stroke-dashoffset: 0; }
+  }
+}
+
+@layer components {
+  /* Hover sheen, borrowed from a credit-card treatment and toned down to suit
+     a card that holds real content. It's a decorative ::after rather than an
+     element so the markup stays as it was, and it sits under nothing: the
+     card's own children all establish their own stacking above it. */
+  .sheen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sheen::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgba( 160, 133, 95, 0.10 ) 46%,
+      rgba( 255, 255, 255, 0.75 ) 50%,
+      rgba( 160, 133, 95, 0.10 ) 54%,
+      transparent 62%
+    );
+  }
+
+  /* focus-within as well as hover, so tabbing to the card's buttons lights it
+     the same way pointing at it does. */
+  .sheen:hover::after,
+  .sheen:focus-within::after {
+    opacity: 1;
+    animation: var( --animate-glint );
+  }
+
+  /* The global reduce-motion rule below collapses animations to nothing, which
+     would leave the band parked mid-card instead of never running. So for
+     anyone who asked for less motion, remove it outright. */
+  @media ( prefers-reduced-motion: reduce ) {
+    .sheen::after { content: none; }
   }
 }
 

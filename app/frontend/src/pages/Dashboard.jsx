@@ -444,7 +444,7 @@ function Dashboard() {
                     {/* Standing in for the holdings that are hidden, so a closed
                         card still says whether there is anything in it. */}
                     { isCollapsed && (
-                      <p className="text-sm text-ink-500 mt-1">
+                      <p className="text-sm text-ink-500 mt-1 font-style: italic">
                         { itemCount === 0
                           ? 'Empty'
                           : `${ itemCount } holding${ itemCount === 1 ? '' : 's' }` }

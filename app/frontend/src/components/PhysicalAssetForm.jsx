@@ -7,23 +7,25 @@ const EMPTY = {
 }
 
 // The questions every item gets asked, in order. These three are what Penny
-// actually needs to price something, so they're the only required ones.
+// actually needs to price something, so they're the only required ones. A
+// question written as a function takes the category, so the wording names the
+// thing the user picked rather than saying "it" over and over.
 const CORE_STEPS = [
   {
     key: 'name', kind: 'field', type: 'text', label: 'Name', required: true,
     question: 'What is it?',
-    hint: 'Whatever you’d call it yourself. The year, make and model make a good name for a car.',
-    placeholder: 'e.g. 2015 Toyota Camry',
+    hint: ( c ) => `Whatever you’d call it yourself. Something like “${ c.examples.name }” works well.`,
+    placeholder: ( c ) => `e.g. ${ c.examples.name }`,
   },
   {
     key: 'initial_value', kind: 'field', type: 'number', label: 'What you paid', required: true,
-    question: 'What did you pay for it?',
-    hint: 'Roughly is fine. Penny compares it against what the item is worth now.',
+    question: ( c ) => `What did you pay for the ${ c.noun }?`,
+    hint: ( c ) => `Roughly is fine. Penny compares it against what the ${ c.noun } is worth now.`,
     placeholder: '14000', prefix: '$',
   },
   {
     key: 'purchase_year', kind: 'field', type: 'number', label: 'Year bought', required: true,
-    question: 'What year did you buy it?',
+    question: ( c ) => `What year did you buy the ${ c.noun }?`,
     hint: 'Age is most of what decides how much something has held its value.',
     placeholder: '2021', min: '1900',
   },
@@ -34,15 +36,15 @@ const CORE_STEPS = [
 const TAIL_STEPS = [
   {
     key: 'location', kind: 'field', type: 'text', label: 'Location',
-    question: 'Where is it?',
+    question: ( c ) => `Where is the ${ c.noun }?`,
     hint: 'Worth answering for property and land, where the market is local.',
     placeholder: 'Boston, MA',
   },
   {
     key: 'details', kind: 'field', type: 'text', label: 'Notes',
-    question: 'Anything else Penny should know?',
+    question: ( c ) => `Anything else Penny should know about the ${ c.noun }?`,
     hint: 'Damage, upgrades, anything unusual about it.',
-    placeholder: 'Anything else Penny should know',
+    placeholder: ( c ) => `Anything unusual about the ${ c.noun }`,
   },
 ]
 
@@ -57,10 +59,20 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
   // answer to the first question is what decides which questions come after
   // it, a plot of land is never asked for its mileage.
   const steps = useMemo( () => {
+    // A question can be written as a function of the category so it can name
+    // the thing being added. Resolving it here, as the steps are built, means
+    // the rest of the component still only ever sees plain strings.
+    const fill = ( def ) => ( {
+      ...def,
+      question: typeof def.question === 'function' ? def.question( info ) : def.question,
+      hint: typeof def.hint === 'function' ? def.hint( info ) : def.hint,
+      placeholder: typeof def.placeholder === 'function' ? def.placeholder( info ) : def.placeholder,
+    } )
+
     const basics = info.basics
       .map( ( key ) => [ key, BASIC_FIELDS[ key ] ] )
       .filter( ( [ , def ] ) => def )
-      .map( ( [ key, def ] ) => ( { ...def, key, kind: 'field' } ) )
+      .map( ( [ key, def ] ) => fill( { ...def, key, kind: 'field' } ) )
 
     const specSteps = info.specs.map( ( spec ) => ( { ...spec, kind: 'spec' } ) )
 
@@ -70,14 +82,14 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
         question: 'What kind of item is it?',
         hint: 'Pick one and Penny will only ask what matters for that kind of thing.',
       },
-      ...CORE_STEPS,
+      ...CORE_STEPS.map( fill ),
       ...basics,
       ...specSteps,
-      ...TAIL_STEPS,
+      ...TAIL_STEPS.map( fill ),
       {
         key: 'review', kind: 'review', label: 'Review',
         question: 'Here’s what you told Penny',
-        hint: 'Add it and Penny will estimate what it’s worth today.',
+        hint: `Add it and Penny will estimate what the ${ info.noun } is worth today.`,
       },
     ]
   }, [ info ] )
