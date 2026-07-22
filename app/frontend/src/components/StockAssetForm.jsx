@@ -188,7 +188,7 @@ function StockAssetForm( { onSubmit, onCancel } )
   const today = new Date().toLocaleDateString( 'en-CA' )
 
   // Same field styling as the item form so the two share one look.
-  const inputClass = "w-full bg-sand-50 border border-sand-300 rounded-lg px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 transition-colors hover:border-sand-400"
+  const inputClass = "field w-full text-sm"
   const labelClass = "block text-xs font-medium text-ink-500 mb-1"
 
   return (

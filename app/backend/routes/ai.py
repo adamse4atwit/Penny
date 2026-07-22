@@ -106,6 +106,11 @@ def describe_asset( asset ) :
     ]
     # category specific fields, i.e. mileage for a car or square feet for a house
     for key, value in ( asset.specs or {} ).items() :
+        # A multi-select spec arrives as a list, i.e. a house's upgrades. Joined
+        # into a phrase so the prompt reads as prose rather than showing Penny
+        # a Python list, and skipped entirely when nothing was ticked.
+        if isinstance( value, list ) :
+            value = ", ".join( str( v ) for v in value )
         if value not in ( None, "" ) :
             lines.append( f"{key.replace('_', ' ').capitalize()}: {value}" )
     if asset.details :

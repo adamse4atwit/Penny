@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { CATEGORIES, BASIC_FIELDS, categoryInfo } from '../config/assetCategories'
+import WaveInput from './WaveInput'
 
 const EMPTY = {
   name: '', category: 'vehicle', make: '', model: '', year_made: '',
@@ -74,7 +75,7 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
       .filter( ( [ , def ] ) => def )
       .map( ( [ key, def ] ) => fill( { ...def, key, kind: 'field' } ) )
 
-    const specSteps = info.specs.map( ( spec ) => ( { ...spec, kind: 'spec' } ) )
+    const specSteps = info.specs.map( ( spec ) => fill( { ...spec, kind: 'spec' } ) )
 
     return [
       {
@@ -100,12 +101,24 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
   // Specs live in their own object because they're stored as a free-form blob
   // on the item rather than as columns, so reading and writing a step's answer
   // depends on which half it belongs to.
-  const answer = step.kind === 'spec' ? ( specs[ step.key ] || '' ) : form[ step.key ]
+  // A 'multi' step's answer is the list of boxes ticked, so an untouched one
+  // starts as an empty array rather than an empty string.
+  const blank = step.type === 'multi' ? [] : ''
+  const answer = step.kind === 'spec' ? ( specs[ step.key ] || blank ) : form[ step.key ]
 
   function setAnswer( value )
   {
     if ( step.kind === 'spec' ) setSpecs( ( prev ) => ( { ...prev, [ step.key ]: value } ) )
     else setForm( ( prev ) => ( { ...prev, [ step.key ]: value } ) )
+  }
+
+  // Ticking adds, unticking removes. Rebuilt rather than mutated so React sees
+  // a new array and re-renders.
+  function toggleOption( option )
+  {
+    setAnswer( answer.includes( option )
+      ? answer.filter( ( o ) => o !== option )
+      : [ ...answer, option ] )
   }
 
   function pickCategory( key )
@@ -129,9 +142,11 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
       return
     }
 
-    // drop any spec the user left blank so we don't send empty strings to Penny
+    // drop any spec the user left blank so we don't send empty strings to
+    // Penny, or an empty list from a multi-select nobody ticked
     const cleaned = Object.fromEntries(
-      Object.entries( specs ).filter( ( [ , v ] ) => v !== '' && v != null )
+      Object.entries( specs ).filter( ( [ , v ] ) =>
+        v !== '' && v != null && !( Array.isArray( v ) && v.length === 0 ) )
     )
 
     // Only send the built-in fields this category actually asked for. A value
@@ -157,21 +172,36 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
     setStepIndex( 0 )
   }
 
-  // The focus ring is inherited from the global :focus-visible rule in
-  // index.css, so these only describe the resting and hover states.
-  const inputClass = "w-full bg-sand-50 border border-sand-300 rounded-lg px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 transition-colors hover:border-sand-400"
+  // .field carries the look, in index.css alongside the other shared controls.
+  // The focus ring on top of it is the global :focus-visible rule there.
+  const inputClass = "field w-full text-sm"
+
+  // One field, sized to its answer rather than stretched across the card: a
+  // year in a full-width box invites a paragraph. A grid of checkboxes is the
+  // one thing here that wants the room.
+  const fieldWidth = step.type === 'multi' ? 'max-w-xl'
+    : step.type === 'text' ? 'max-w-md'
+    : 'max-w-40'
 
   // What the primary button says. "Skip" rather than "Next" on an untouched
   // optional question, so it's clear that moving on without answering is a
   // real option and not something being lost.
-  const nextLabel = !step.required && !answer ? 'Skip' : 'Next'
+  // An empty array is truthy, so a multi-select with nothing ticked has to be
+  // tested by length or it would read as answered.
+  const unanswered = Array.isArray( answer ) ? answer.length === 0 : !answer
+  const nextLabel = !step.required && unanswered ? 'Skip' : 'Next'
 
   // Read-back on the last step: the category, then only the questions that got
   // an answer. Listing the blanks too would bury the handful of things
   // actually filled in. index is kept so a row can send you back to its own
   // question rather than making you step backwards through the rest.
+  // A list of ticked boxes is flattened to text here, which also turns an
+  // empty one into '' so the filter below drops it like any other blank.
   const answered = steps
-    .map( ( s, index ) => ( { ...s, index, value: s.kind === 'spec' ? specs[ s.key ] : form[ s.key ] } ) )
+    .map( ( s, index ) => {
+      const value = s.kind === 'spec' ? specs[ s.key ] : form[ s.key ]
+      return { ...s, index, value: Array.isArray( value ) ? value.join( ', ' ) : value }
+    } )
     .filter( ( row ) => ( row.kind === 'field' || row.kind === 'spec' ) && row.value !== '' && row.value != null )
 
   const CategoryIcon = info.icon
@@ -189,7 +219,7 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
   ]
 
   return (
-    <form onSubmit={ handleSubmit } className="animate-rise bg-sand-200/50 rounded-2xl border border-sand-300 p-5 mb-5">
+    <form onSubmit={ handleSubmit } className="animate-rise bg-sand-200/50 rounded-2xl border border-sand-100 p-5 mb-5">
 
       {/* Progress. A wizard with no sense of length reads as an endless form,
           and the count is honest here because every remaining step is already
@@ -240,11 +270,28 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
           </div>
         ) }
 
-        {/* One field, sized to its answer rather than stretched across the
-            card: a year in a full-width box invites a paragraph. */}
         { ( step.kind === 'field' || step.kind === 'spec' ) && (
-          <div className={ step.type === 'text' ? 'max-w-md' : 'max-w-40' }>
-            { step.type === 'select' ? (
+          <div className={ fieldWidth }>
+            { step.type === 'multi' ? (
+              // Boxes rather than chips: several of these are normally ticked
+              // at once, and a checkbox says "as many as apply" where a chip
+              // row reads as pick-one. .check / .check-tile live in index.css.
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5">
+                { step.options.map( ( option ) => (
+                  <label key={ option } className="flex items-center gap-2.5 text-sm text-ink-700 cursor-pointer w-fit">
+                    <span className="check shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={ answer.includes( option ) }
+                        onChange={ () => toggleOption( option ) }
+                      />
+                      <span className="check-tile" />
+                    </span>
+                    { option }
+                  </label>
+                ) ) }
+              </div>
+            ) : step.type === 'select' ? (
               <select
                 value={ answer || '' }
                 onChange={ (e) => setAnswer( e.target.value ) }
@@ -257,21 +304,21 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
                 { step.options.map( (o) => <option key={o} value={o}>{o}</option> ) }
               </select>
             ) : (
-              <div className="relative">
-                { step.prefix && (
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">{ step.prefix }</span>
-                ) }
-                <input
-                  type={ step.type }
-                  placeholder={ step.placeholder || '' }
-                  value={ answer || '' }
-                  onChange={ (e) => setAnswer( e.target.value ) }
-                  className={ step.prefix ? `${inputClass} pl-7` : inputClass }
-                  required={ step.required }
-                  { ...( step.type === 'number' ? { min: step.min || '0', step: 'any' } : {} ) }
-                  autoFocus
-                />
-              </div>
+              // The step's short label ("Year bought") rather than its
+              // question, which is already the heading above. A prefixed field
+              // is indented so the $ that fades in has somewhere to sit.
+              <WaveInput
+                label={ step.label }
+                prefix={ step.prefix }
+                type={ step.type }
+                placeholder={ step.placeholder || '' }
+                value={ answer || '' }
+                onChange={ (e) => setAnswer( e.target.value ) }
+                className={ step.prefix ? 'pl-4 text-sm' : 'text-sm' }
+                required={ step.required }
+                { ...( step.type === 'number' ? { min: step.min || '0', step: 'any' } : {} ) }
+                autoFocus
+              />
             ) }
           </div>
         ) }

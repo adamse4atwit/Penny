@@ -117,6 +117,200 @@
   @media ( prefers-reduced-motion: reduce ) {
     .sheen::after { content: none; }
   }
+
+  /* Every text, number and select input in the app.
+   *
+   * The border deepens in color rather than growing from 1.5px to 2px on hover
+   * and focus: a thicker border shrinks the padding box, which shifts the text
+   * and caret inside it by half a pixel every time the pointer passes over.
+   *
+   * A line rather than a box: one rule per answer, which keeps a form reading
+   * as a list of things to fill in instead of a stack of containers. Selects
+   * use it too, so the two never sit side by side looking unrelated.
+   */
+  .field {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.5rem 0.5rem 0.25rem;
+    border: none;
+    border-bottom: 1.5px solid var( --color-sand-400 );
+    border-radius: 0;
+    background: transparent;
+    color: var( --color-ink-900 );
+    transition: border-color 200ms ease;
+  }
+
+  .field:hover {
+    border-bottom-color: var( --color-clay-500 );
+  }
+
+  .field::placeholder {
+    color: var( --color-ink-400 );
+  }
+
+  /* An input whose label lifts out of the field, a character at a time, when
+     you start filling it in, over a bar that opens from the middle. Needs the
+     markup in WaveInput: the label and bar are siblings after the input, which
+     is what lets the input's own state drive both.
+   */
+  .wave {
+    position: relative;
+    padding-top: 1.5rem;
+  }
+
+  /* The bar is a focus indicator in its own right, and a more legible one on a
+     borderless field than a ring drawn around empty space. This is the only
+     place the global ring is dropped, and only because something replaces it. */
+  .wave .field:focus {
+    outline: none;
+  }
+
+  .wave-label {
+    position: absolute;
+    top: 2rem;
+    left: 0.25rem;
+    display: flex;
+    pointer-events: none;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var( --color-ink-500 );
+  }
+
+  /* Each character carries its own delay, so the label rolls upward instead of
+     lifting in one piece. --index is set per span in WaveInput. white-space
+     keeps the spaces between words from collapsing, now that every character
+     is its own box. */
+  .wave-char {
+    transition: all 200ms ease;
+    transition-delay: calc( var( --index ) * 0.05s );
+    white-space: pre;
+  }
+
+  /* :not(:placeholder-shown), not :valid. An optional field with nothing in it
+     is valid, so :valid would strand the label in its lifted position over an
+     empty box. This needs a placeholder to be present, which WaveInput
+     guarantees even when the caller has no example to show. */
+  .wave .field:focus ~ .wave-label .wave-char,
+  .wave .field:not( :placeholder-shown ) ~ .wave-label .wave-char {
+    transform: translateY( -1.4rem );
+    font-size: 0.75rem;
+    color: var( --color-clay-700 );
+  }
+
+  /* The placeholder sits exactly where the resting label is, so it waits until
+     the label has moved out of the way. */
+  .wave .field:not( :focus )::placeholder {
+    color: transparent;
+  }
+
+  /* Same idea for a prefix like the $ on a price: it would collide with the
+     resting label, so it fades in as the label leaves. */
+  .wave-prefix {
+    position: absolute;
+    top: 2rem;
+    left: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    pointer-events: none;
+    opacity: 0;
+    color: var( --color-ink-400 );
+    transition: opacity 200ms ease;
+  }
+
+  .wave .field:focus ~ .wave-prefix,
+  .wave .field:not( :placeholder-shown ) ~ .wave-prefix {
+    opacity: 1;
+  }
+
+  .wave-bar {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+
+  /* Two halves growing out from the centre line. */
+  .wave-bar::before,
+  .wave-bar::after {
+    content: "";
+    position: absolute;
+    bottom: 1px;
+    width: 0;
+    height: 2px;
+    background: var( --color-clay-700 );
+    transition: width 200ms ease;
+  }
+
+  .wave-bar::before { left: 50%; }
+  .wave-bar::after  { right: 50%; }
+
+  .wave .field:focus ~ .wave-bar::before,
+  .wave .field:focus ~ .wave-bar::after {
+    width: 50%;
+  }
+
+  /* Checkbox with a tile that wipes into its frame instead of a native tick.
+     The real input is still doing all the work, just visually hidden, so
+     clicking the label, tabbing to it and reading it with a screen reader all
+     behave the way a checkbox is supposed to. The tile is only paint. */
+  .check {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border: 2px solid var( --color-sand-300 );
+    border-radius: 0.6em;
+    line-height: 0;
+    cursor: pointer;
+  }
+
+  .check input {
+    position: absolute;
+    height: 0;
+    width: 0;
+    opacity: 0;
+  }
+
+  /* A zero-sized input can't show a focus ring, so the frame wears it instead.
+     Without this the control is invisible to anyone tabbing through. */
+  .check:focus-within {
+    outline: 2px solid var( --color-clay-600 );
+    outline-offset: 2px;
+  }
+
+  /* Parked above the frame and clipped out of sight until checked. The two
+     inset shadows are what round the tile off: a light one along the bottom
+     edge, a darker one along the top. */
+  .check-tile {
+    position: relative;
+    display: block;
+    height: 1.15rem;
+    width: 1.15rem;
+    border-radius: 0.45em;
+    background-color: var( --color-clay-700 );
+    box-shadow:
+      inset 0 -2.5px 3px var( --color-clay-500 ),
+      inset 0 3px 3px rgba( 0, 0, 0, 0.34 );
+    transform: translateY( -150% );
+    transition: transform 300ms ease-in-out;
+  }
+
+  .check input:checked ~ .check-tile {
+    transform: translateY( 0 );
+  }
+
+  /* The tick itself: two borders of a box, turned 45 degrees. It rides on the
+     tile rather than the frame so it wipes in with it. */
+  .check-tile::after {
+    content: "";
+    position: absolute;
+    left: 0.38rem;
+    top: 0.15rem;
+    height: 0.55rem;
+    width: 0.3rem;
+    border: solid var( --color-sand-50 );
+    border-width: 0 2px 2px 0;
+    transform: rotate( 45deg );
+    box-shadow: 0 4px 2px rgba( 0, 0, 0, 0.34 );
+  }
 }
 
 @layer base {

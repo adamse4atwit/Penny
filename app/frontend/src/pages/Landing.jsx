@@ -63,11 +63,6 @@ function Landing()
 
           <section className="relative max-w-3xl mx-auto px-4 sm:px-8 text-center pt-12 sm:pt-20 pb-28 sm:pb-36">
 
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-clay-700 bg-sand-50 rounded-full px-3 py-1 mb-6">
-              <SparkIcon width={ 13 } height={ 13 } />
-              Your net worth, all in one place
-            </span>
-
             <h1 className="text-4xl sm:text-5xl font-bold text-ink-900 tracking-tight leading-tight">
               All your investments,<br className="hidden sm:block" /> tracked together.
             </h1>

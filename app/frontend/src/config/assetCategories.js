@@ -53,7 +53,19 @@ export const CATEGORIES = {
       { key: 'bedrooms',    label: 'Bedrooms',    type: 'number', placeholder: '3' },
       { key: 'bathrooms',   label: 'Bathrooms',   type: 'number', placeholder: '2' },
       { key: 'year_built',  label: 'Year built',  type: 'number', placeholder: '1994' },
-      { key: 'upgrades',    label: 'Upgrades',    type: 'text',   placeholder: 'New roof, kitchen…' },
+      // A 'multi' answer is a list of the boxes ticked rather than one value.
+      // Free text asked people to remember what counts; a list of the features
+      // that actually move an appraisal is faster to answer and gives Penny
+      // the same words every time, instead of "pool" one day and "swimming
+      // pool out back" the next.
+      { key: 'upgrades', label: 'Upgrades', type: 'multi',
+        question: ( c ) => `Does the ${ c.noun } have any of these?`,
+        hint: 'Tick anything that applies, or skip if none do.',
+        options: [
+          'Pool', 'Porch or deck', 'Garage', 'Finished basement',
+          'Renovated kitchen', 'Renovated bathroom', 'New roof',
+          'Solar panels', 'Fireplace', 'Landscaped garden', 'Central air',
+        ] },
     ],
   },
   land : {

@@ -16,10 +16,10 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
   const subtitle = [ item.make, item.model, item.year_made, item.condition ].filter( Boolean ).join( ' · ' )
 
   return (
-    <div className="group sheen rounded-2xl border border-sand-300 bg-sand-50 p-5 shadow-sm shadow-clay-800/5 hover:shadow-md hover:shadow-clay-800/10 hover:border-sand-400 hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group sheen rounded-2xl border border-sand-200 bg-sand-50 p-5 shadow-sm shadow-clay-800/5 hover:shadow-md hover:shadow-clay-800/10 hover:border-sand-400 hover:-translate-y-0.5 transition-all duration-200">
 
       <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sand-200 text-clay-700 ring-1 ring-sand-300">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sand-200 text-clay-700">
           <Icon className="h-6 w-6" />
         </div>
 
@@ -51,7 +51,11 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
             <p className="text-xs text-ink-700 mt-2 leading-relaxed font-style: italic">
               { Object.entries( item.specs ).map( ( [ key, value ], index, all ) => (
                 <span key={ key }>
-                  <span className="text-ink-500 capitalize">{ key.replace( /_/g, ' ' ) }</span> { value }
+                  <span className="text-ink-500 capitalize">{ key.replace( /_/g, ' ' ) }</span>{' '}
+                  {/* A multi-select spec is a list. Joined with a dot rather
+                      than a comma so its own entries don't read as more
+                      spec pairs in the sentence around it. */}
+                  { Array.isArray( value ) ? value.join( ' · ' ) : value }
                   { index < all.length - 1 ? ', ' : '.' } 
                 </span>
               ) ) }

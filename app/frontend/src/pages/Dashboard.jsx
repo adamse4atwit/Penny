@@ -6,11 +6,18 @@ import StockAssetForm from '../components/StockAssetForm'
 import PhysicalAssetCard from '../components/PhysicalAssetCard'
 import AllocationChart from '../components/AllocationChart'
 import AiInsight from '../components/AiInsight'
+import ConfirmDialog from '../components/ConfirmDialog'
 import Logo from '../components/Logo'
 import { TrashIcon, PlusIcon, SparkIcon, ChevronIcon } from '../components/icons'
 import { money, currentValue } from '../config/assetCategories' 
 
 import noPort from '../assets/no-port.png'
+
+
+// Where the "don't warn me again" answer is kept. localStorage rather than
+// component state so the choice survives a reload, and namespaced so it can't
+// collide with the auth token sitting beside it.
+const SKIP_DELETE_WARNING = 'penny:skip-delete-warning'
 
 
 // What a portfolio is worth now versus what it cost, across both stocks and
@@ -38,6 +45,15 @@ function portfolioTotals( portfolio, prices )
   }
 
   return { value, cost, gainLoss: value - cost }
+}
+
+
+// How many things a portfolio holds, stocks and physical items together. Used
+// for the header's count, for deciding whether a portfolio is empty, and for
+// telling the user what a delete would take with it.
+function holdingCount( portfolio )
+{
+  return portfolio.assets.length + ( portfolio.physical_assets || [] ).length
 }
 
 
@@ -102,6 +118,14 @@ function Dashboard() {
   // the open ones instead would mean seeding the set on every load, and a
   // portfolio created later would come back collapsed.
   const [collapsed, setCollapsed] = useState( () => new Set() )
+  // The portfolio waiting on a yes/no, or null when nothing is being confirmed.
+  // Holding the whole portfolio rather than its id lets the dialog name it and
+  // count what would go with it.
+  const [pendingDelete, setPendingDelete] = useState( null )
+  // Read once on mount, not on every render, since localStorage is synchronous.
+  const [skipDeleteWarning, setSkipDeleteWarning] = useState(
+    () => localStorage.getItem( SKIP_DELETE_WARNING ) === 'true'
+  )
 
 
 
@@ -205,6 +229,29 @@ function Dashboard() {
     } )
   }
 
+  // Deleting a portfolio takes its stocks and items with it and the backend
+  // keeps no copy, so the trash button asks first. Unless the user has already
+  // said they'd rather it didn't, in which case it goes straight through.
+  function requestDeletePort( portfolio )
+  {
+    if ( skipDeleteWarning ) handleDeletePort( portfolio.id )
+    else setPendingDelete( portfolio )
+  }
+
+  // `remember` is the dialog's checkbox. Saved before the delete runs so the
+  // preference sticks even if the request itself fails.
+  function confirmDeletePort( remember )
+  {
+    if ( remember )
+    {
+      localStorage.setItem( SKIP_DELETE_WARNING, 'true' )
+      setSkipDeleteWarning( true )
+    }
+
+    handleDeletePort( pendingDelete.id )
+    setPendingDelete( null )
+  }
+
   async function handleDeletePort( portfolioId )
   {
     try {
@@ -274,7 +321,7 @@ function Dashboard() {
   }
 
   // Reused by every form field on this page so the inputs stay identical.
-  const inputClass = "bg-sand-50 border border-sand-300 rounded-lg px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 transition-colors hover:border-sand-400"
+  const inputClass = "field text-sm"
 
   if ( loading ) return (
     <div className="min-h-screen bg-sand-100 flex items-center justify-center">
@@ -403,7 +450,7 @@ function Dashboard() {
 
             const totals = portfolioTotals( p, prices )
             const isCollapsed = collapsed.has( p.id )
-            const itemCount = p.assets.length + ( p.physical_assets || [] ).length
+            const itemCount = holdingCount( p )
 
             return (
             <div key={p.id} className="bg-sand-50 rounded-2xl border border-sand-300 shadow-sm shadow-clay-800/5 p-5 sm:p-6 mb-5">
@@ -474,7 +521,7 @@ function Dashboard() {
                     Item
                   </button>
                   <button
-                    onClick={ () => handleDeletePort( p.id ) }
+                    onClick={ () => requestDeletePort( p ) }
                     aria-label={ `Delete portfolio ${p.name}` }
                     className="text-ink-500 rounded-lg p-2 hover:bg-loss/10 hover:text-loss transition-colors"
                   >
@@ -530,10 +577,15 @@ function Dashboard() {
                   </div>
                 ) }
 
-                {p.assets.length === 0 ? (
+                {/* The empty state speaks for the whole portfolio, so it only
+                    appears when there is nothing in it at all. A portfolio
+                    holding items but no stocks isn't empty, it just has no
+                    table to draw. itemCount already counts both halves. */}
+                { itemCount === 0 && (
                   <div className="border-t border-sand-300 py-8 text-center">
-                    <p className="text-ink-900 text-sm font-medium">No stocks yet</p>
-                    <p className="text-ink-500 text-sm mt-1">Add one with its ticker. The short code it trades under, like AAPL.</p>
+                    <p className="text-ink-900 text-sm font-medium">No stocks or items yet</p>
+                    <p className="text-ink-500 text-sm mt-1">Add a stock with its ticker. The short code it trades under, like AAPL.</p>
+                    <p className="text-ink-500 text-sm mt-1">Or an item with a fair description for a more accurate estimate!</p>
                     {/* Nothing to add if the form is already open right above. */}
                     { activeAddAsset !== p.id && (
                       <button
@@ -545,7 +597,12 @@ function Dashboard() {
                       </button>
                     ) }
                   </div>
-                ) : (
+                ) }
+
+                {/* Only drawn when there is something to put in the table. The
+                    header's own "+ Stock" button is how you add the first one,
+                    so nothing is lost by leaving this out entirely. */}
+                { p.assets.length > 0 && (
                   <>
                     <h3 className="text-xs text-ink-500 uppercase tracking-wide font-medium mb-2">Stocks</h3>
                     {/* Wrapped so the table scrolls sideways on a phone rather than
@@ -673,6 +730,24 @@ function Dashboard() {
         </div>
 
       </div>
+
+      {/* Sits outside the page container so it can cover the whole viewport.
+          The count is spelled out because "everything in it" is easy to read
+          past when what's in it is a year of records. */}
+      { pendingDelete && (
+        <ConfirmDialog
+          title={ `Delete “${ pendingDelete.name }”?` }
+          body={
+            holdingCount( pendingDelete ) === 0
+              ? 'This portfolio is empty, but deleting it still can’t be undone.'
+              : `This also deletes the ${ holdingCount( pendingDelete ) } holding${ holdingCount( pendingDelete ) === 1 ? '' : 's' } inside it. Penny keeps no copy, so this can’t be undone.`
+          }
+          confirmLabel="Delete portfolio"
+          rememberLabel="Don’t warn me again"
+          onConfirm={ confirmDeletePort }
+          onCancel={ () => setPendingDelete( null ) }
+        />
+      ) }
 
       {/* Same privacy notice as the landing page, so someone who signed up
           straight from a link still sees it once they're inside. */}
