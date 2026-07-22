@@ -22,7 +22,7 @@ const MAX_SLICES = 7   // the 8th slot is held for "Other"
 
 // The card color the chart is drawn on (--color-sand-50). Recharts needs a
 // literal, so it can't read the CSS variable directly.
-const SURFACE = '#FDFBF7'
+export const SURFACE = '#FDFBF7'
 
 // Flattens a portfolio's stocks and physical items into one sorted list of
 // { name, value }, folding everything past MAX_SLICES into a single row.

@@ -5,10 +5,12 @@ import PhysicalAssetForm from '../components/PhysicalAssetForm'
 import StockAssetForm from '../components/StockAssetForm'
 import PhysicalAssetCard from '../components/PhysicalAssetCard'
 import AllocationChart from '../components/AllocationChart'
+import PortfolioPie from '../components/PortfolioPie'
 import AiInsight from '../components/AiInsight'
 import ConfirmDialog from '../components/ConfirmDialog'
+import AskPenny from '../components/AskPenny'
 import Logo from '../components/Logo'
-import { TrashIcon, PlusIcon, SparkIcon, ChevronIcon } from '../components/icons'
+import { TrashIcon, PlusIcon, ChevronIcon } from '../components/icons'
 import { money, currentValue } from '../config/assetCategories' 
 
 import noPort from '../assets/no-port.png'
@@ -18,6 +20,24 @@ import noPort from '../assets/no-port.png'
 // component state so the choice survives a reload, and namespaced so it can't
 // collide with the auth token sitting beside it.
 const SKIP_DELETE_WARNING = 'penny:skip-delete-warning'
+
+// Which cards were left collapsed, so closing a portfolio sticks across a
+// reload instead of springing back open.
+const COLLAPSED_PORTFOLIOS = 'penny:collapsed-portfolios'
+
+
+// Stored as a JSON array of ids. Wrapped in a try because a half-written or
+// hand-edited value shouldn't take the whole dashboard down, an empty set just
+// means everything opens.
+function loadCollapsed()
+{
+  try {
+    const saved = JSON.parse( localStorage.getItem( COLLAPSED_PORTFOLIOS ) )
+    return new Set( Array.isArray( saved ) ? saved : [] )
+  } catch {
+    return new Set()
+  }
+}
 
 
 // What a portfolio is worth now versus what it cost, across both stocks and
@@ -112,12 +132,13 @@ function Dashboard() {
   const [recLoading, setRecLoading] = useState( false )
   const [riskTolerance, setRiskTolerance] = useState( '' )
   const [financialGoal, setFinancialGoal] = useState( '' )
+  const [showAskPenny, setShowAskPenny] = useState( false )
   const [activeAddPhysical, setActiveAddPhysical] = useState( null )
   const [estimateLoading, setEstimateLoading] = useState( null ) // id currently estimating
   // Ids of the collapsed cards, so anything not in the set is open. Tracking
   // the open ones instead would mean seeding the set on every load, and a
   // portfolio created later would come back collapsed.
-  const [collapsed, setCollapsed] = useState( () => new Set() )
+  const [collapsed, setCollapsed] = useState( loadCollapsed )
   // The portfolio waiting on a yes/no, or null when nothing is being confirmed.
   // Holding the whole portfolio rather than its id lets the dialog name it and
   // count what would go with it.
@@ -158,9 +179,19 @@ function Dashboard() {
 
   useEffect( () => { loadPortfolios() }, [loadPortfolios] )
 
+  // Write the collapsed set back out whenever it changes. An effect rather
+  // than saving inside toggleCollapsed so the two places that change the set
+  // can't drift apart.
+  useEffect( () => {
+    localStorage.setItem( COLLAPSED_PORTFOLIOS, JSON.stringify( [ ...collapsed ] ) )
+  }, [collapsed] )
+
   function handleLogout()
   {
     localStorage.removeItem( 'token' )
+    // Ids belong to the account that just left. Keeping them would collapse
+    // whatever the next login happens to number the same.
+    localStorage.removeItem( COLLAPSED_PORTFOLIOS )
     navigate( '/login' )
   }
 
@@ -274,6 +305,9 @@ function Dashboard() {
         financial_goal: financialGoal || null,
       } )
       setRecommendation( res.data )
+      // The insight lands on the page behind the dialog, so the dialog has to
+      // get out of the way once it's there.
+      setShowAskPenny( false )
     } catch {
       setError( 'Failed to get recommendation. :/' )
     } finally {
@@ -370,41 +404,8 @@ function Dashboard() {
           </div>
         ) }
 
-        {/* Optional context for Penny. Both blank still works, it just gives
-            more general advice. */}
-        <div className="bg-sand-50 border border-sand-300 rounded-2xl p-4 mb-6 shadow-sm shadow-clay-800/5">
-          <p className="text-xs text-ink-500 uppercase tracking-wide font-medium mb-3">Ask Penny</p>
-          <div className="flex flex-wrap gap-2 items-center">
-            <select
-              value={ riskTolerance }
-              onChange={ (e) => setRiskTolerance( e.target.value ) }
-              aria-label="Risk tolerance"
-              className={ inputClass }
-            >
-              <option value="">Risk tolerance…</option>
-              <option value="conservative">Conservative</option>
-              <option value="moderate">Moderate</option>
-              <option value="aggressive">Aggressive</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Goal, i.e. buy a house in 5 years"
-              value={ financialGoal }
-              onChange={ (e) => setFinancialGoal( e.target.value ) }
-              aria-label="Financial goal"
-              className={ `${inputClass} flex-1 min-w-56` }
-            />
-            <button
-              onClick={ handleGetRecommendation }
-              disabled={ recLoading }
-              className="flex items-center gap-1.5 text-sm bg-clay-700 text-sand-50 font-medium px-4 py-2 rounded-lg hover:bg-clay-800 transition-colors disabled:opacity-50"
-            >
-              <SparkIcon width={ 15 } height={ 15 } />
-              { recLoading ? 'Thinking…' : 'AI Insight' }
-            </button>
-          </div>
-        </div>
-
+        {/* Penny's questions moved into AskPennyDialog, opened by the tab on
+            the left. Her answer still lands here, at the top of the list. */}
         { recommendation && (
           <AiInsight insight={ recommendation } onClose={ () => setRecommendation( null ) } />
         ) }
@@ -426,6 +427,10 @@ function Dashboard() {
             <button type="button" onClick={ () => setShowCreateForm(false) } className="text-ink-500 text-sm hover:text-ink-900 px-2 py-2 transition-colors">Cancel</button>
           </form>
         ) }
+
+        {/* Whole-account split, above the individual cards. Draws nothing
+            until at least two portfolios have value in them. */}
+        <PortfolioPie portfolios={ portfolios } prices={ prices } />
 
         { portfolios.length === 0 ? (
           <div className="bg-sand-50 rounded-2xl border border-sand-300 shadow-sm shadow-clay-800/5 p-12 text-center">
@@ -722,14 +727,28 @@ function Dashboard() {
                 <p className="text-ink-900 text-sm font-medium">Ask Penny</p>
               </div>
               <p className="text-ink-500 text-sm mt-1">
-                Set a risk level and a goal at the top of the page, then hit AI Insight for
-                advice on what you’re holding.
+                Click Penny on the left, set a risk level and a goal, then hit AI Insight
+                for advice on what you’re holding.
               </p>
             </li>
           </ol>
         </div>
 
       </div>
+
+      {/* Outside the page container so the tab can sit against the edge of the
+          viewport rather than the edge of the centered column. */}
+      <AskPenny
+        open={ showAskPenny }
+        onOpen={ () => setShowAskPenny( true ) }
+        onClose={ () => setShowAskPenny( false ) }
+        riskTolerance={ riskTolerance }
+        onRiskChange={ setRiskTolerance }
+        financialGoal={ financialGoal }
+        onGoalChange={ setFinancialGoal }
+        loading={ recLoading }
+        onSubmit={ handleGetRecommendation }
+      />
 
       {/* Sits outside the page container so it can cover the whole viewport.
           The count is spelled out because "everything in it" is easy to read

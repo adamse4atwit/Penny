@@ -47,6 +47,27 @@
     to   { opacity: 1; transform: translateY( 0 ); }
   }
 
+  /* Penny's panel arriving where her tab was, at the left edge. `origin-left`
+     is what makes it grow out of that edge rather than out of its own middle,
+     so it reads as the tab opening up instead of a box appearing over it.
+     Slower than `rise` and eased out harder, so it settles rather than lands,
+     the way something being pulled open would. */
+  --animate-swing : swing 260ms cubic-bezier( 0.22, 1, 0.36, 1 );
+
+  @keyframes swing {
+    from { opacity: 0; transform: translateX( -16px ) scale( 0.94 ); }
+    to   { opacity: 1; transform: translateX( 0 ) scale( 1 ); }
+  }
+
+  /* The dimmed backdrop behind it. On its own it would pop in at full
+     strength while the panel was still easing open. */
+  --animate-fade : fade 260ms ease-out;
+
+  @keyframes fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
   /* A band of light travelling across a card, once, when you point at it. The
      highlight is flanked by a faint clay tint rather than fading straight to
      nothing: on a surface this close to white, plain white has nothing to
