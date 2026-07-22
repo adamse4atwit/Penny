@@ -77,19 +77,19 @@ function Landing()
                 // Already has a session: one button straight through to their data.
                 <Link
                   to="/dashboard"
-                  className="bg-clay-700 text-sand-50 font-medium px-6 py-3 rounded-xl text-sm hover:bg-clay-800 transition-colors"
+                  className="btn btn-lg btn-primary"
                 >Go to your dashboard
                 </Link>
               ) : (
                 <>
                   <Link
                     to="/register"
-                    className="bg-clay-700 text-sand-50 font-medium px-6 py-3 rounded-xl text-sm hover:bg-clay-800 transition-colors"
+                    className="btn btn-lg btn-primary"
                   >Create your account
                   </Link>
                   <Link
                     to="/login"
-                    className="bg-sand-50 text-ink-900 font-medium px-6 py-3 rounded-xl text-sm hover:bg-sand-200 transition-colors"
+                    className="btn btn-lg"
                   >Sign in
                   </Link>
                 </>

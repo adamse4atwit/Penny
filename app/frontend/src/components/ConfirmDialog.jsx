@@ -67,7 +67,7 @@ function ConfirmDialog( { title, body, confirmLabel, rememberLabel, onConfirm, o
             ref={ cancelRef }
             type="button"
             onClick={ onCancel }
-            className="text-sm text-ink-700 font-medium rounded-lg bg-sand-200 px-3 py-2 hover:bg-sand-300 transition-colors"
+            className="btn"
           >Cancel
           </button>
           {/* The destructive button is the only thing on the page wearing the
@@ -75,7 +75,7 @@ function ConfirmDialog( { title, body, confirmLabel, rememberLabel, onConfirm, o
           <button
             type="button"
             onClick={ () => onConfirm( remember ) }
-            className="text-sm text-sand-50 font-medium rounded-lg bg-loss px-3 py-2 hover:opacity-90 transition-opacity"
+            className="btn btn-destructive"
           >{ confirmLabel }
           </button>
         </div>

@@ -354,7 +354,7 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
         { step.kind !== 'category' && (
           <button
             type="submit"
-            className="bg-clay-700 text-sand-50 font-medium px-4 py-2 rounded-lg text-sm hover:bg-clay-800 transition-colors"
+            className="btn btn-primary"
           >
             { isReview ? 'Add item' : nextLabel }
           </button>
@@ -363,11 +363,11 @@ function PhysicalAssetForm( { onSubmit, onCancel } )
           <button
             type="button"
             onClick={ () => setStepIndex( ( i ) => i - 1 ) }
-            className="text-ink-500 text-sm hover:text-ink-900 px-2 py-2 transition-colors"
+            className="btn btn-ghost"
           >Back
           </button>
         ) }
-        <button type="button" onClick={ onCancel } className="text-ink-500 text-sm hover:text-ink-900 px-2 py-2 transition-colors">Cancel</button>
+        <button type="button" onClick={ onCancel } className="btn btn-ghost">Cancel</button>
       </div>
 
     </form>

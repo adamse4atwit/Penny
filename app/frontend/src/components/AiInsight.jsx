@@ -21,7 +21,7 @@ function AiInsight( { insight, onClose } )
         <button
           onClick={ onClose }
           aria-label="Dismiss insight"
-          className="text-sand-50/70 hover:text-sand-50 rounded-md p-1 hover:bg-clay-800 transition-colors shrink-0"
+          className="btn btn-sm btn-icon btn-dark shrink-0"
         >
           <CloseIcon />
         </button>

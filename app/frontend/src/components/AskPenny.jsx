@@ -93,7 +93,7 @@ function AskPenny( {
                 type="button"
                 onClick={ onClose }
                 aria-label="Close"
-                className="text-sand-50/70 hover:text-sand-50 rounded-md p-1 hover:bg-clay-800 transition-colors shrink-0"
+                className="btn btn-sm btn-icon btn-dark shrink-0"
               >
                 <CloseIcon />
               </button>
@@ -137,13 +137,13 @@ function AskPenny( {
                 <button
                   type="button"
                   onClick={ onClose }
-                  className="text-sm text-ink-700 font-medium rounded-lg bg-sand-200 px-3 py-2 hover:bg-sand-300 transition-colors"
+                  className="btn"
                 >Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={ loading }
-                  className="flex items-center gap-1.5 text-sm bg-clay-700 text-sand-50 font-medium px-4 py-2 rounded-lg hover:bg-clay-800 transition-colors disabled:opacity-50"
+                  className="btn btn-primary"
                 >
                   <SparkIcon width={ 15 } height={ 15 } />
                   { loading ? 'Thinking…' : 'AI Insight' }

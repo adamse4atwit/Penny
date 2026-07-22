@@ -3,26 +3,13 @@
 // middle of Penny's estimate range. Long tail folds into "Other" so we
 // never need more colors than the palette actually has.
 
+import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import PieView from './PieView'
 import { money, currentValue } from '../config/assetCategories'
+import { CHART_PALETTE, SURFACE } from '../config/chartColors'
 
-// Fixed slot order for the categorical palette. Assigned in order and never
-// cycled: an extra series folds into "Other" instead, so a given holding keeps
-// its color when the list changes.
-//
-// These hues are biased toward the warm half of the wheel so the bar belongs to
-// the tan page rather than sitting on top of it, but they are still saturated
-// enough to stay distinguishable. Validated against the card surface below:
-// lightness band, chroma floor, colorblind separation (worst adjacent pair
-// ΔE 10.0) and normal-vision separation (ΔE 20.9) all pass. Gold falls under
-// 3:1 against the surface, which is why the legend direct-labels every slice
-// instead of letting the swatch carry identity alone.
-const PALETTE = [ '#B5601F', '#0E8F6F', '#D9A400', '#3F73CE', '#A8397A', '#6F9B14', '#6A4FD0', '#D1544A' ]
 const MAX_SLICES = 7   // the 8th slot is held for "Other"
-
-// The card color the chart is drawn on (--color-sand-50). Recharts needs a
-// literal, so it can't read the CSS variable directly.
-export const SURFACE = '#FDFBF7'
 
 // Flattens a portfolio's stocks and physical items into one sorted list of
 // { name, value }, folding everything past MAX_SLICES into a single row.
@@ -77,6 +64,10 @@ function AllocationTooltip( { active, payload, slices, total } )
 
 function AllocationChart( { portfolio, prices } )
 {
+  // Bar or pie, picked per card. Kept as plain state so each portfolio can be
+  // shown whichever way suits it.
+  const [ mode, setMode ] = useState( 'bar' )
+
   const slices = buildAllocation( portfolio, prices )
   const total = slices.reduce( (sum, s) => sum + s.value, 0 )
 
@@ -89,48 +80,76 @@ function AllocationChart( { portfolio, prices } )
 
   return (
     <div className="mb-6">
-      <div className="flex items-baseline justify-between mb-2">
+      <div className="flex items-baseline justify-between gap-3 mb-2">
         <h3 className="text-xs text-ink-500 uppercase tracking-wide font-medium">Allocation</h3>
-        <p className="text-xs text-ink-500">
-          Total <span className="font-semibold text-ink-900">{ money( total ) }</span>
-        </p>
+
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-ink-500">
+            Total <span className="font-semibold text-ink-900">{ money( total ) }</span>
+          </p>
+
+          {/* Same shape either way, so this switches the drawing rather than
+              adding a second chart. aria-pressed says which one is on, since
+              the styling alone wouldn't reach a screen reader. */}
+          <div className="flex rounded-lg bg-sand-200 p-0.5">
+            { [ 'bar', 'pie' ].map( (option) => (
+              <button
+                key={ option }
+                onClick={ () => setMode( option ) }
+                aria-pressed={ mode === option }
+                className={ `text-xs px-2 py-1 rounded-md capitalize transition-colors ${
+                  mode === option
+                    ? 'bg-sand-50 text-ink-900 font-medium shadow-sm shadow-clay-800/5'
+                    : 'text-ink-500 hover:text-ink-900'
+                }` }
+              >{ option }
+              </button>
+            ) ) }
+          </div>
+        </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={ 44 }>
-        <BarChart data={ data } layout="vertical" margin={ { top: 0, right: 0, bottom: 0, left: 0 } }>
-          <XAxis type="number" hide domain={ [ 0, total ] } />
-          <YAxis type="category" hide />
-          <Tooltip
-            shared={ false }
-            cursor={ false }
-            content={ <AllocationTooltip slices={ slices } total={ total } /> }
-          />
-          { slices.map( (s, i) => (
-            <Bar
-              key={ i }
-              dataKey={ `s${i}` }
-              stackId="allocation"
-              fill={ PALETTE[ i ] }
-              /* 2px of the card color between fills so neighbouring hues never touch */
-              stroke={ SURFACE }
-              strokeWidth={ 2 }
-              /* only the two outer ends of the whole bar get rounded */
-              radius={
-                i === 0 ? [ 6, 0, 0, 6 ]
-                  : i === slices.length - 1 ? [ 0, 6, 6, 0 ]
-                  : 0
-              }
+      { mode === 'bar' ? (
+        <ResponsiveContainer width="100%" height={ 44 }>
+          <BarChart data={ data } layout="vertical" margin={ { top: 0, right: 0, bottom: 0, left: 0 } }>
+            <XAxis type="number" hide domain={ [ 0, total ] } />
+            <YAxis type="category" hide />
+            <Tooltip
+              shared={ false }
+              cursor={ false }
+              content={ <AllocationTooltip slices={ slices } total={ total } /> }
             />
-          ) ) }
-        </BarChart>
-      </ResponsiveContainer>
+            { slices.map( (s, i) => (
+              <Bar
+                key={ i }
+                dataKey={ `s${i}` }
+                stackId="allocation"
+                fill={ CHART_PALETTE[ i ] }
+                /* 2px of the card color between fills so neighbouring hues never touch */
+                stroke={ SURFACE }
+                strokeWidth={ 2 }
+                /* only the two outer ends of the whole bar get rounded */
+                radius={
+                  i === 0 ? [ 6, 0, 0, 6 ]
+                    : i === slices.length - 1 ? [ 0, 6, 6, 0 ]
+                    : 0
+                }
+              />
+            ) ) }
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <PieView slices={ slices } total={ total } size="max-w-60" />
+      ) }
 
       {/* Legend doubles as the direct labels: three palette hues sit under
-          3:1 on the card surface, so identity must never rest on color alone. */}
+          3:1 on the card surface, so identity must never rest on color alone.
+          Only for the bar, since PieView brings its own. */}
+      { mode === 'bar' && (
       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
         { slices.map( (s, i) => (
           <div key={ i } className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={ { backgroundColor: PALETTE[ i ] } } />
+            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={ { backgroundColor: CHART_PALETTE[ i ] } } />
             <span className="text-xs text-ink-700">{ s.name }</span>
             <span className="text-xs text-ink-500 font-mono">
               { ( s.value / total * 100 ).toFixed( 0 ) }%
@@ -138,6 +157,7 @@ function AllocationChart( { portfolio, prices } )
           </div>
         ) ) }
       </div>
+      ) }
     </div>
   )
 }

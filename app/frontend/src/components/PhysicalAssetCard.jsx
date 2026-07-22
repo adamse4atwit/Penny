@@ -36,7 +36,7 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
               <button
                 onClick={ () => onDelete( item.id ) }
                 aria-label={ `Delete ${item.name}` }
-                className="text-ink-400 hover:text-loss rounded-md p-1 hover:bg-loss/10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all"
+                className="btn btn-sm btn-icon btn-ghost btn-danger opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
               >
                 <TrashIcon width={ 14 } height={ 14 } />
               </button>
@@ -93,7 +93,7 @@ function PhysicalAssetCard( { item, estimating, onEstimate, onDelete } )
           <button
             onClick={ () => onEstimate( item.id ) }
             disabled={ estimating }
-            className="text-xs text-clay-700 font-medium rounded-lg bg-sand-100 px-3 py-1.5 hover:bg-sand-300 disabled:opacity-50 whitespace-nowrap transition-colors"
+            className="btn btn-sm"
           >{ estimating ? 'Estimating…' : estimated ? 'Re-estimate' : 'Estimate value' }</button>
           { item.est_summary && (
             <button onClick={ () => setShowWhy( !showWhy ) } className="text-xs text-ink-500 hover:text-ink-900 transition-colors">

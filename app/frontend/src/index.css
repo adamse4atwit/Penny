@@ -165,8 +165,144 @@
     border-bottom-color: var( --color-clay-500 );
   }
 
+  /* The bottom rule is the focus indicator for fields. A ring drawn around a
+     borderless input reads as a box the field deliberately doesn't have, so
+     fields opt out of the global ring and deepen their line instead — the same
+     move as :hover, one step darker. */
+  .field:focus-visible {
+    outline: none;
+    border-bottom-color: var( --color-clay-600 );
+  }
+
   .field::placeholder {
     color: var( --color-ink-400 );
+  }
+
+  /* Every button in the app. One outlined shape, so a form's actions read as a
+   * row of the same control rather than a pile of different ones.
+   *
+   * Height is fixed at 2.25rem so a button lines up with anything beside it,
+   * and the border is part of that height rather than added on hover, for the
+   * same reason .field deepens its color instead of thickening: a border that
+   * grows on hover nudges everything next to it.
+   */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.25rem;
+    padding: 0 1rem;
+    border: 1px solid var( --color-sand-300 );
+    border-radius: 0.5rem;
+    background: var( --color-sand-50 );
+    color: var( --color-ink-900 );
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgb( 87 68 48 / 0.05 );
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .btn:hover {
+    background: var( --color-sand-200 );
+    border-color: var( --color-sand-400 );
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* The one action a screen is actually for: filled, so it still wins against
+     a row of outlined buttons. Everything else stays the outline above. */
+  .btn-primary {
+    border-color: var( --color-clay-700 );
+    background: var( --color-clay-700 );
+    color: var( --color-sand-50 );
+  }
+
+  .btn-primary:hover {
+    background: var( --color-clay-800 );
+    border-color: var( --color-clay-800 );
+  }
+
+  /* No chrome until you point at it. For cancels and for the delete icons that
+     live inside rows and cards, where 40 borders would be louder than the
+     content they sit next to. */
+  .btn-ghost {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: var( --color-ink-500 );
+  }
+
+  .btn-ghost:hover {
+    background: var( --color-sand-200 );
+    border-color: transparent;
+    color: var( --color-ink-900 );
+  }
+
+  /* Square, for a button that is only an icon. Same height as the rest so it
+     sits level in a row beside them. */
+  .btn-icon {
+    width: 2.25rem;
+    padding: 0;
+  }
+
+  /* Landing page calls to action, which carry a whole hero section between
+     them and need the weight to match it. */
+  .btn-lg {
+    height: 2.75rem;
+    padding: 0 1.5rem;
+  }
+
+  /* For toolbars and card headers, where a full-height button would out-weigh
+     the heading it sits beside. */
+  .btn-sm {
+    height: 1.875rem;
+    padding: 0 0.625rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-sm.btn-icon {
+    width: 1.875rem;
+    padding: 0;
+  }
+
+  /* The same outline, drawn in the light half of the palette, for the buttons
+     sitting on the clay navbar. The ink border and text above would disappear
+     into it. */
+  .btn-dark {
+    border-color: color-mix( in srgb, var( --color-sand-50 ) 35%, transparent );
+    background: transparent;
+    color: var( --color-sand-50 );
+    box-shadow: none;
+  }
+
+  .btn-dark:hover {
+    background: var( --color-clay-600 );
+    border-color: var( --color-sand-50 );
+  }
+
+  /* The confirm on a delete dialog. Filled, like .btn-primary, because it is
+     the primary action there, just not a safe one. */
+  .btn-destructive {
+    border-color: var( --color-loss );
+    background: var( --color-loss );
+    color: var( --color-sand-50 );
+  }
+
+  .btn-destructive:hover {
+    background: color-mix( in srgb, var( --color-loss ) 85%, black );
+    border-color: color-mix( in srgb, var( --color-loss ) 85%, black );
+  }
+
+  /* A destructive action shouldn't look like the safe one next to it. */
+  .btn-danger:hover {
+    background: color-mix( in srgb, var( --color-loss ) 10%, transparent );
+    border-color: transparent;
+    color: var( --color-loss );
   }
 
   /* An input whose label lifts out of the field, a character at a time, when
@@ -177,13 +313,6 @@
   .wave {
     position: relative;
     padding-top: 1.5rem;
-  }
-
-  /* The bar is a focus indicator in its own right, and a more legible one on a
-     borderless field than a ring drawn around empty space. This is the only
-     place the global ring is dropped, and only because something replaces it. */
-  .wave .field:focus {
-    outline: none;
   }
 
   .wave-label {

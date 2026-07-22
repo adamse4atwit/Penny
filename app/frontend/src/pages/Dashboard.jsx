@@ -375,7 +375,7 @@ function Dashboard() {
         <div className="flex gap-2 items-center">
           <button
             onClick={ () => setShowCreateForm( !showCreateForm ) }
-            className="flex items-center gap-1.5 text-sm bg-clay-600 hover:bg-clay-500 font-medium px-3 sm:px-4 py-2 rounded-lg transition-colors"
+            className="btn btn-dark"
           >
             <PlusIcon width={ 15 } height={ 15 } />
             {/* The label is noise on a narrow screen where the icon already says it */}
@@ -383,7 +383,7 @@ function Dashboard() {
           </button>
           <button
             onClick={ handleLogout }
-            className="text-sm font-medium text-sand-50/80 hover:text-sand-50 hover:bg-clay-800 px-3 py-2 rounded-lg transition-colors"
+            className="btn btn-dark"
           >Log out
           </button>
         </div>
@@ -423,8 +423,8 @@ function Dashboard() {
               required
               autoFocus
             />
-            <button type="submit" className="bg-clay-700 text-sand-50 font-medium px-4 py-2 rounded-lg text-sm hover:bg-clay-800 transition-colors">Create</button>
-            <button type="button" onClick={ () => setShowCreateForm(false) } className="text-ink-500 text-sm hover:text-ink-900 px-2 py-2 transition-colors">Cancel</button>
+            <button type="submit" className="btn btn-primary">Create</button>
+            <button type="button" onClick={ () => setShowCreateForm(false) } className="btn btn-ghost">Cancel</button>
           </form>
         ) }
 
@@ -444,7 +444,7 @@ function Dashboard() {
             <p className="text-ink-500 text-sm mt-1 mb-5">Create one to start tracking your stocks and belongings.</p>
             <button
               onClick={ () => setShowCreateForm( true ) }
-              className="inline-flex items-center gap-1.5 bg-clay-700 text-sand-50 font-medium px-4 py-2 rounded-lg text-sm hover:bg-clay-800 transition-colors"
+              className="btn btn-primary"
             >
               <PlusIcon width={ 15 } height={ 15 } />
               New Portfolio
@@ -512,7 +512,7 @@ function Dashboard() {
                   <button
                     onClick={ () => { expand( p.id ); setActiveAddAsset( activeAddAsset === p.id ? null : p.id ) } }
                     aria-expanded={ activeAddAsset === p.id }
-                    className="flex items-center gap-1.5 text-sm text-clay-700 font-medium rounded-lg bg-sand-200 px-3 py-1.5 hover:bg-sand-300 transition-colors"
+                    className="btn btn-sm"
                   >
                     <PlusIcon width={ 14 } height={ 14 } />
                     Stock
@@ -520,7 +520,7 @@ function Dashboard() {
                   <button
                     onClick={ () => { expand( p.id ); setActiveAddPhysical( activeAddPhysical === p.id ? null : p.id ) } }
                     aria-expanded={ activeAddPhysical === p.id }
-                    className="flex items-center gap-1.5 text-sm text-clay-700 font-medium rounded-lg bg-sand-200 px-3 py-1.5 hover:bg-sand-300 transition-colors"
+                    className="btn btn-sm"
                   >
                     <PlusIcon width={ 14 } height={ 14 } />
                     Item
@@ -528,7 +528,7 @@ function Dashboard() {
                   <button
                     onClick={ () => requestDeletePort( p ) }
                     aria-label={ `Delete portfolio ${p.name}` }
-                    className="text-ink-500 rounded-lg p-2 hover:bg-loss/10 hover:text-loss transition-colors"
+                    className="btn btn-sm btn-icon btn-ghost btn-danger"
                   >
                     <TrashIcon />
                   </button>
@@ -595,7 +595,7 @@ function Dashboard() {
                     { activeAddAsset !== p.id && (
                       <button
                         onClick={ () => setActiveAddAsset( p.id ) }
-                        className="mt-3 inline-flex items-center gap-1.5 text-sm text-clay-700 font-medium rounded-lg bg-sand-200 px-3 py-1.5 hover:bg-sand-300 transition-colors"
+                        className="btn btn-sm mt-3"
                       >
                         <PlusIcon width={ 14 } height={ 14 } />
                         Add a stock
@@ -671,7 +671,7 @@ function Dashboard() {
                                   <button
                                     onClick={ () => handleDeleteAsset( p.id, a.ids ) }
                                     aria-label={ `Delete ${a.ticker}` }
-                                    className="text-ink-400 hover:text-loss rounded-md p-1.5 hover:bg-loss/10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all"
+                                    className="btn btn-sm btn-icon btn-ghost btn-danger opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
                                   >
                                     <TrashIcon width={ 14 } height={ 14 } />
                                   </button>

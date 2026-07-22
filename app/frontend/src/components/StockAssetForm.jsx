@@ -302,7 +302,7 @@ function StockAssetForm( { onSubmit, onCancel } )
               type="button"
               onClick={ closeDate }
               aria-label="Close date lookup"
-              className="-mt-0.5 rounded-md p-1 text-ink-400 transition-colors hover:bg-sand-200 hover:text-ink-900"
+              className="btn btn-sm btn-icon btn-ghost -mt-0.5"
             >
               <CloseIcon width={ 13 } height={ 13 } />
             </button>
@@ -389,7 +389,7 @@ function StockAssetForm( { onSubmit, onCancel } )
               type="button"
               onClick={ closeSearch }
               aria-label="Close company search"
-              className="-mt-0.5 rounded-md p-1 text-ink-400 transition-colors hover:bg-sand-200 hover:text-ink-900"
+              className="btn btn-sm btn-icon btn-ghost -mt-0.5"
             >
               <CloseIcon width={ 13 } height={ 13 } />
             </button>
@@ -473,10 +473,10 @@ function StockAssetForm( { onSubmit, onCancel } )
         <button
           type="submit"
           disabled={ quote?.status === 'loading' || quote?.status === 'bad' }
-          className="bg-clay-700 text-sand-50 font-medium px-4 py-2 rounded-lg text-sm hover:bg-clay-800 transition-colors disabled:opacity-50 disabled:hover:bg-clay-700"
+          className="btn btn-primary"
         >Add stock
         </button>
-        <button type="button" onClick={ onCancel } className="text-ink-500 text-sm hover:text-ink-900 px-2 py-2 transition-colors">Cancel</button>
+        <button type="button" onClick={ onCancel } className="btn btn-ghost">Cancel</button>
       </div>
 
     </form>
