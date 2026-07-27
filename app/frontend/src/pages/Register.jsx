@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import api from '../api'
 import Logo from '../components/Logo'
 import GoogleButton from '../components/GoogleButton'
-import AppleButton from '../components/AppleButton'
 
 function Register()
 {
@@ -61,7 +60,7 @@ function Register()
                 id="fullName"
                 type="text"
                 autoComplete="name"
-                placeholder="Jane Doe"
+                placeholder="Penny"
                 value={fullName}
                 onChange={ (e) => setFullName( e.target.value ) }
                 className={ inputClass }
@@ -110,12 +109,9 @@ function Register()
             <span className="flex-1 border-t border-sand-300" />
           </div>
 
-          {/* Both providers write the same token to the same key, so whichever
-              one the user picks the rest of the app can't tell the difference. */}
-          <div className="space-y-3">
-            <GoogleButton onError={ setError } />
-            <AppleButton onError={ setError } />
-          </div>
+          {/* Google writes the same token to the same key the password form
+              does, so the rest of the app can't tell the two paths apart. */}
+          <GoogleButton onError={ setError } />
 
         </div>
 

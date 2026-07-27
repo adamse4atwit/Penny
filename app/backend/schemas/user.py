@@ -17,13 +17,6 @@ class GoogleLogin(BaseModel) :
     # The one-time ID token (a JWT) that Google hands the browser after sign-in.
     credential: str
 
-class AppleLogin(BaseModel) :
-    # Apple's equivalent of Google's credential.
-    identity_token: str
-    # Apple only reveals the user's name on their first ever sign-in, and sends
-    # it next to the token rather than inside it. Optional for everyone after.
-    full_name: Optional[str] = None
-
 class UserOut(BaseModel) :
     model_config = ConfigDict( from_attributes=True )
 

@@ -188,15 +188,3 @@ export function BoxIcon( props )
     </svg>
   )
 }
-
-// The Apple mark on the sign-in button. It doesn't use `base` because the logo
-// is a solid shape rather than a stroked outline, and it sits slightly larger
-// than the others so it optically matches the text next to it.
-export function AppleIcon( props )
-{
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" { ...props }>
-      <path d="M17.05 12.536c-.024-2.69 2.196-3.98 2.296-4.043-1.25-1.83-3.194-2.08-3.885-2.108-1.654-.167-3.23.973-4.07.973-.84 0-2.135-.949-3.51-.923-1.806.027-3.47 1.05-4.398 2.665-1.874 3.253-.479 8.066 1.345 10.705.892 1.292 1.955 2.742 3.35 2.69 1.344-.053 1.852-.87 3.478-.87 1.626 0 2.083.87 3.505.844 1.446-.026 2.362-1.316 3.246-2.612 1.023-1.498 1.444-2.947 1.468-3.021-.032-.014-2.818-1.081-2.846-4.29ZM14.5 4.9c.74-.9 1.24-2.152 1.104-3.4-1.067.043-2.36.711-3.126 1.61-.686.796-1.287 2.07-1.126 3.292 1.192.092 2.408-.605 3.148-1.502Z" />
-    </svg>
-  )
-}
