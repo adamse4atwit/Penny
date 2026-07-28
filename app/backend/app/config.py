@@ -14,5 +14,8 @@ class Settings(BaseSettings):
     # OAuth client ID issued by Google Cloud Console. The backend needs it to
     # confirm an ID token was minted for *our* app and not somebody else's.
     google_client_id: str
+    # Deployed frontend origin, so CORS lets the Vercel domain through.
+    frontend_origin: str = "http://localhost:5173"
+
 
 settings = Settings()
