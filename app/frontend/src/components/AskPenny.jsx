@@ -25,12 +25,19 @@ function AskPenny( {
 {
   const closeRef = useRef( null )
 
-  // Escape closes, the same as clicking the backdrop. Focus moves into the
-  // panel on open so it can be dismissed without reaching for the mouse.
+  // Focus moves into the panel on open so it can be dismissed without reaching
+  // for the mouse. Only when open flips, nothing else: Dashboard builds a new
+  // onClose every render, so having it in here too meant every letter typed
+  // into the goal field re-ran this and pulled focus back onto the X.
   useEffect( () => {
     if ( !open ) return
-
     closeRef.current?.focus()
+  }, [ open ] )
+
+  // Escape closes, the same as clicking the backdrop. Kept apart from the
+  // focus above so it can still track onClose without dragging focus with it.
+  useEffect( () => {
+    if ( !open ) return
 
     function onKey( e )
     {
