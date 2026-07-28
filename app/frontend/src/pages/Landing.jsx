@@ -104,10 +104,11 @@ function Landing()
           <div className="grid gap-4 md:grid-cols-3">
             { FEATURES.map( (f) => (
               <div key={ f.title } className="bg-sand-50 rounded-2xl p-6 shadow-sm shadow-clay-800/5">
+                {/* Always an <img>: these are imported PNGs, and a production
+                    build inlines anything under 4kB as a base64 data URI, so a
+                    filename check would fail and render the raw string. */}
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sand-200 text-xl mb-4">
-                  { f.icon.endsWith( 'png' )
-                    ? <img src={ f.icon } alt={ f.title } className="h-6 w-6 object-contain" />
-                    : f.icon }
+                  <img src={ f.icon } alt="" className="h-6 w-6 object-contain" />
                 </div>
                 <h2 className="font-semibold text-ink-900">{ f.title }</h2>
                 <p className="text-sm text-ink-500 mt-1.5 leading-relaxed">{ f.body }</p>
